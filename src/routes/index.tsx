@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import cacaoPod from "@/assets/cacao-pod.png";
-import cacaoSeed from "@/assets/cacao-seed.png";
-import cacaoTree from "@/assets/cacao-tree.png";
+import cacaoBranch from "@/assets/cacao-branch.png.asset.json";
+import cacaoBean from "@/assets/cacao-bean.png.asset.json";
+import cacaoTree from "@/assets/cacao-tree-gold.png.asset.json";
+import kraftPaper from "@/assets/kraft-paper.png.asset.json";
+import kraftStrip from "@/assets/kraft-strip.png.asset.json";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
-import { PaperFibers, TornStrip, tearClipPath } from "@/components/rooted/torn-edge";
+import { PaperFibers, tearHalfPath } from "@/components/rooted/torn-edge";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,7 +33,7 @@ export const Route = createFileRoute("/")({
 const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 const SOFT = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-type Step = 1 | 1.5 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 2.5 | 3 | 4 | 5;
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -91,17 +93,15 @@ function RootedExperience() {
     draggingRef.current = false;
     setProgress(1);
     setTearDone(true);
-    // The torn paper balls up into a seed before the journey continues.
-    setTimeout(() => setStep(1.5), ms(500));
-    setTimeout(() => setStep(2), ms(2600));
+    setTimeout(() => setStep(2), ms(900));
   }, [ms]);
 
-  const updateFromClientX = useCallback(
-    (clientX: number) => {
+  const updateFromClientY = useCallback(
+    (clientY: number) => {
       const el = trackRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
-      const p = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      const p = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
       setProgress(p);
       if (p >= 0.9) completeTear();
     },
@@ -110,7 +110,7 @@ function RootedExperience() {
 
   useEffect(() => {
     const move = (e: PointerEvent) => {
-      if (draggingRef.current) updateFromClientX(e.clientX);
+      if (draggingRef.current) updateFromClientY(e.clientY);
     };
     const up = () => {
       if (!draggingRef.current) return;
@@ -123,11 +123,17 @@ function RootedExperience() {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
     };
-  }, [updateFromClientX]);
+  }, [updateFromClientY]);
+
+  // Sow -> the torn paper balls up into a seed -> Plant
+  const startGrowing = () => {
+    setStep(2.5);
+    setTimeout(() => setStep(3), ms(2400));
+  };
 
   const startGrowth = () => {
     setGrowing(true);
-    setTimeout(() => setStep(4), ms(1800));
+    setTimeout(() => setStep(4), ms(2200));
   };
 
   const submitName = (e: React.FormEvent) => {
@@ -147,6 +153,10 @@ function RootedExperience() {
     return <GroveScreen trees={trees} name={name} reduced={reduced} toggle={toggle} />;
   }
 
+  const halfTransition = draggingRef.current
+    ? "none"
+    : `clip-path ${ms(700)}ms ${SPRING}, transform ${ms(700)}ms ${SPRING}, opacity ${ms(600)}ms ${SOFT}`;
+
   return (
     <main className="flex min-h-dvh items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
       <div
@@ -164,8 +174,8 @@ function RootedExperience() {
             transition: `transform ${ms(1000)}ms ${SOFT}, opacity ${ms(1000)}ms ${SOFT}`,
           }}
         >
-          {step === 1 || step === 1.5 || step === 2 ? (
-            <SowScreen onNext={() => setStep(3)} />
+          {step === 1 || step === 2 || step === 2.5 ? (
+            <SowScreen onNext={startGrowing} />
           ) : null}
           {step === 3 ? (
             <PlantScreen growing={growing} onPlant={startGrowth} reduced={reduced} />
@@ -175,34 +185,44 @@ function RootedExperience() {
           ) : null}
         </div>
 
-        {/* Screen 1 packaging, torn away by the drag */}
+        {/* Screen 1 packaging, ripped apart down the middle */}
         {step === 1 ? (
           <div
             className="absolute inset-0"
-            style={{
-              clipPath: tearClipPath(progress),
-              opacity: tearDone ? 0 : 1,
-              transition: draggingRef.current
-                ? "none"
-                : `clip-path ${ms(600)}ms ${SPRING}, opacity ${ms(600)}ms ${SOFT}`,
-            }}
+            style={{ opacity: tearDone ? 0 : 1, transition: `opacity ${ms(600)}ms ${SOFT}` }}
           >
-            <WelcomeScreen
-              dimmed={dimmed}
-              progress={progress}
-              reduced={reduced}
-              trackRef={trackRef}
-              onHandleDown={(e) => {
-                draggingRef.current = true;
-                (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-              }}
-            />
+            {(["left", "right"] as const).map((side) => (
+              <div
+                key={side}
+                className="absolute inset-0"
+                style={{
+                  clipPath: tearHalfPath(side, progress),
+                  transform: `translateX(${(side === "left" ? -1 : 1) * progress * 120}px) rotate(${
+                    (side === "left" ? -1 : 1) * progress * 3
+                  }deg)`,
+                  transformOrigin: side === "left" ? "left bottom" : "right bottom",
+                  transition: halfTransition,
+                }}
+              >
+                <WelcomeScreen
+                  dimmed={dimmed}
+                  progress={progress}
+                  reduced={reduced}
+                  showControls={side === "left"}
+                  trackRef={trackRef}
+                  onHandleDown={(e) => {
+                    draggingRef.current = true;
+                    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+                  }}
+                />
+              </div>
+            ))}
             <PaperFibers progress={progress} reduceMotion={reduced} />
           </div>
         ) : null}
 
-        {/* Paper crumples into a seed and drops into the soil */}
-        {step === 1.5 ? <PaperToSeed reduced={reduced} /> : null}
+        {/* The torn paper crumples into a seed on the way to the Plant screen */}
+        {step === 2.5 ? <PaperToSeed reduced={reduced} /> : null}
       </div>
     </main>
   );
@@ -214,7 +234,7 @@ function PaperToSeed({ reduced }: { reduced: boolean }) {
 
   useEffect(() => {
     const a = setTimeout(() => setPhase(1), reduced ? 40 : 500);
-    const b = setTimeout(() => setPhase(2), reduced ? 120 : 1500);
+    const b = setTimeout(() => setPhase(2), reduced ? 120 : 1400);
     return () => {
       clearTimeout(a);
       clearTimeout(b);
@@ -224,12 +244,12 @@ function PaperToSeed({ reduced }: { reduced: boolean }) {
   const dur = reduced ? 120 : 900;
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden bg-plum/80">
       <div
         className="absolute left-1/2 top-1/2"
         style={{
           transform: `translate(-50%, ${phase === 2 ? "160px" : "-50%"}) scale(${
-            phase === 0 ? 1 : 0.55
+            phase === 0 ? 1 : 0.6
           }) rotate(${phase === 0 ? 0 : 18}deg)`,
           transition: `transform ${dur}ms ${phase === 2 ? SPRING : SOFT}`,
         }}
@@ -238,16 +258,16 @@ function PaperToSeed({ reduced }: { reduced: boolean }) {
         <div
           className="size-40 rounded-[45%_55%_60%_40%/50%_45%_55%_50%] bg-kraft shadow-2xl"
           style={{
+            backgroundImage: `url(${kraftPaper.url})`,
+            backgroundSize: "cover",
             opacity: phase === 0 ? 1 : 0,
             transition: `opacity ${dur / 2}ms ${SOFT}`,
           }}
         />
         {/* the seed it becomes */}
         <img
-          src={cacaoSeed}
+          src={cacaoBean.url}
           alt="Cacao seed formed from the torn packaging"
-          width={1024}
-          height={1024}
           className="absolute inset-0 m-auto w-40"
           style={{
             opacity: phase === 0 ? 0 : 1,
@@ -257,11 +277,12 @@ function PaperToSeed({ reduced }: { reduced: boolean }) {
       </div>
 
       {/* soil the seed lands in */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-28 bg-kraft-deep"
+      <img
+        src={kraftStrip.url}
+        alt=""
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-28 w-full object-cover"
         style={{
-          clipPath:
-            "polygon(0% 46%, 9% 30%, 19% 50%, 29% 28%, 40% 48%, 51% 26%, 62% 46%, 73% 28%, 84% 48%, 93% 32%, 100% 44%, 100% 100%, 0% 100%)",
           transform: `translateY(${phase === 2 ? "0" : "40%"})`,
           transition: `transform ${dur}ms ${SOFT}`,
         }}
@@ -274,20 +295,25 @@ function WelcomeScreen({
   dimmed,
   progress,
   reduced,
+  showControls,
   trackRef,
   onHandleDown,
 }: {
   dimmed: boolean;
   progress: number;
   reduced: boolean;
+  showControls: boolean;
   trackRef: React.RefObject<HTMLDivElement | null>;
   onHandleDown: (e: React.PointerEvent) => void;
 }) {
   return (
-    <section className="relative h-full w-full overflow-hidden bg-kraft">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.28),transparent_65%)]" />
+    <section
+      className="relative h-full w-full overflow-hidden bg-kraft"
+      style={{ backgroundImage: `url(${kraftPaper.url})`, backgroundSize: "cover" }}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.22),transparent_65%)]" />
       <div
-        className="absolute inset-0 bg-plum-deep/55 transition-opacity"
+        className="absolute inset-0 bg-plum-deep/45 transition-opacity"
         style={{
           opacity: dimmed ? 1 : 0,
           transitionDuration: reduced ? "120ms" : "700ms",
@@ -297,10 +323,8 @@ function WelcomeScreen({
 
       <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
         <img
-          src={cacaoPod}
+          src={cacaoBranch.url}
           alt="Gold line drawing of a cacao pod"
-          width={1024}
-          height={1024}
           className="w-64 drop-shadow-[0_0_30px_rgba(233,194,90,0.35)]"
         />
         <h1 className="mt-6 font-display text-5xl font-light tracking-wide text-gold-soft">
@@ -309,48 +333,51 @@ function WelcomeScreen({
         <p className="mt-2 font-display text-lg italic text-gold/80">Theobroma Cacao</p>
       </div>
 
-      <div
-        className="absolute inset-x-0 bottom-0 px-7 pb-10 transition-all"
-        style={{
-          opacity: dimmed ? 1 : 0,
-          transform: dimmed ? "translateY(0)" : "translateY(24px)",
-          transitionDuration: reduced ? "120ms" : "700ms",
-          transitionTimingFunction: SPRING,
-        }}
-      >
-        <p className="mb-5 text-center font-sans text-[13px] leading-relaxed text-gold-soft/90">
-          Slide the arrow across the screen to rip the bottom of the packaging.
-        </p>
+      {/* Vertical rip control: pull downwards to tear the pack open */}
+      {showControls ? (
         <div
-          ref={trackRef}
-          className="relative h-[72px] rounded-full border border-gold/40 bg-plum-deep/60 backdrop-blur-sm"
+          className="absolute inset-0 transition-all"
+          style={{
+            opacity: dimmed ? 1 : 0,
+            transitionDuration: reduced ? "120ms" : "700ms",
+            transitionTimingFunction: SPRING,
+          }}
         >
+          <p className="absolute inset-x-0 top-8 px-10 text-center font-sans text-[13px] leading-relaxed text-gold-soft/90">
+            Pull the handle straight down to rip the packaging open.
+          </p>
           <div
-            className="absolute inset-y-1 left-1 rounded-full bg-gold/15"
-            style={{ width: `calc(${Math.max(progress, 0.001) * 100}% - 0.5rem)` }}
-          />
-          <button
-            type="button"
-            aria-label="Drag to tear the packaging"
-            onPointerDown={onHandleDown}
-            className="absolute top-1/2 grid size-16 -translate-y-1/2 cursor-grab touch-none place-items-center rounded-full bg-gold text-plum-deep glow-gold active:cursor-grabbing"
-            style={{
-              left: `calc(0.25rem + ${progress} * (100% - 4.5rem))`,
-              transition: `left ${reduced ? 100 : 400}ms ${SPRING}`,
-            }}
+            ref={trackRef}
+            className="absolute left-1/2 w-[72px] -translate-x-1/2 rounded-full border border-gold/40 bg-plum-deep/50 backdrop-blur-sm"
+            style={{ top: "18%", height: "68%" }}
           >
-            <svg viewBox="0 0 24 24" className="size-7" fill="none" aria-hidden>
-              <path
-                d="M5 12h13m0 0-5-5m5 5-5 5"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+            <div
+              className="absolute inset-x-1 top-1 rounded-full bg-gold/15"
+              style={{ height: `calc(${Math.max(progress, 0.001) * 100}% - 0.5rem)` }}
+            />
+            <button
+              type="button"
+              aria-label="Drag down to rip the packaging"
+              onPointerDown={onHandleDown}
+              className="absolute left-1/2 grid size-16 -translate-x-1/2 cursor-grab touch-none place-items-center rounded-full bg-gold text-plum-deep glow-gold active:cursor-grabbing"
+              style={{
+                top: `calc(0.25rem + ${progress} * (100% - 4.5rem))`,
+                transition: `top ${reduced ? 100 : 400}ms ${SPRING}`,
+              }}
+            >
+              <svg viewBox="0 0 24 24" className="size-7" fill="none" aria-hidden>
+                <path
+                  d="M12 5v13m0 0-5-5m5 5 5-5"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 }
@@ -360,7 +387,7 @@ const BUTTON =
 
 function SowScreen({ onNext }: { onNext: () => void }) {
   return (
-    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-24 pt-16">
+    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-28 pt-16">
       <div className="animate-soft-in">
         <CadburyMark />
       </div>
@@ -380,7 +407,12 @@ function SowScreen({ onNext }: { onNext: () => void }) {
         </button>
       </div>
 
-      <TornStrip />
+      <img
+        src={kraftStrip.url}
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full object-cover"
+      />
     </section>
   );
 }
@@ -416,42 +448,37 @@ function PlantScreen({
         />
         {/* young tree unfurling from the planted seed */}
         <img
-          src={cacaoTree}
+          src={cacaoTree.url}
           alt=""
           aria-hidden
-          width={1024}
-          height={1024}
           loading="lazy"
           className="absolute bottom-24 w-64 origin-bottom"
           style={{
             transform: growing ? "scale(1)" : "scale(0.05)",
             opacity: growing ? 1 : 0,
-            transition: `transform ${dur}ms ${SPRING} ${reduced ? 0 : 300}ms, opacity ${dur}ms ${SOFT} ${
-              reduced ? 0 : 300
+            transition: `transform ${dur}ms ${SPRING} ${reduced ? 0 : 500}ms, opacity ${dur}ms ${SOFT} ${
+              reduced ? 0 : 500
             }ms`,
           }}
         />
-        {/* the seed itself, sinking into the soil as it is planted */}
+        {/* the seed itself, dropping onto the ground as it is planted */}
         <img
-          src={cacaoSeed}
-          alt="Gold line drawing of a cacao seed pod resting in the soil"
-          width={1024}
-          height={1024}
+          src={cacaoBean.url}
+          alt="Gold line drawing of a cacao seed resting on the soil"
           loading="lazy"
           className="relative mb-20 w-40"
           style={{
-            transform: growing ? "translateY(70px) scale(0.5)" : "translateY(0) scale(1)",
+            transform: growing ? "translateY(90px) scale(0.45)" : "translateY(0) scale(1)",
             opacity: growing ? 0 : 1,
-            transition: `transform ${dur}ms ${SOFT}, opacity ${dur}ms ${SOFT}`,
+            transition: `transform ${dur}ms ${SOFT}, opacity ${dur}ms ${SOFT} ${reduced ? 0 : 400}ms`,
           }}
         />
         {/* soil bed */}
-        <div
-          className="absolute inset-x-[-2rem] bottom-0 h-24 bg-kraft"
-          style={{
-            clipPath:
-              "polygon(0% 44%, 8% 26%, 17% 48%, 27% 28%, 38% 46%, 49% 24%, 60% 46%, 71% 28%, 82% 48%, 92% 30%, 100% 44%, 100% 100%, 0% 100%)",
-          }}
+        <img
+          src={kraftStrip.url}
+          alt=""
+          aria-hidden
+          className="absolute inset-x-[-2rem] bottom-0 h-24 w-[calc(100%+4rem)] object-cover"
         />
       </div>
 
@@ -489,10 +516,8 @@ function GrowScreen({
       <ChangingFuturesMark />
 
       <img
-        src={cacaoTree}
+        src={cacaoTree.url}
         alt="Gold line drawing of a full cacao tree"
-        width={1024}
-        height={1024}
         loading="lazy"
         className="mx-auto w-72"
       />
@@ -559,7 +584,7 @@ function GroveScreen({
 
         {/* oversized watermark leaf illustration */}
         <img
-          src={cacaoTree}
+          src={cacaoTree.url}
           alt=""
           aria-hidden
           className="pointer-events-none absolute -right-24 top-0 h-full opacity-[0.06]"
@@ -577,11 +602,12 @@ function GroveScreen({
 
         {/* the grove itself */}
         <div className="absolute inset-0">
-          {plants.slice(0, Math.max(4, Math.min(plants.length, trees % plants.length || 12))).map(
-            (p, i) => (
+          {plants
+            .slice(0, Math.max(4, Math.min(plants.length, trees % plants.length || 12)))
+            .map((p, i) => (
               <img
                 key={i}
-                src={p.size > 30 ? cacaoTree : cacaoSeed}
+                src={p.size > 30 ? cacaoTree.url : cacaoBean.url}
                 alt=""
                 aria-hidden
                 className={reduced ? "absolute" : "absolute animate-soft-in"}
@@ -593,8 +619,7 @@ function GroveScreen({
                   animationDelay: `${p.delay}ms`,
                 }}
               />
-            ),
-          )}
+            ))}
         </div>
 
         {/* newest tree, called out with its name */}
@@ -607,9 +632,9 @@ function GroveScreen({
         {/* footer */}
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between px-10 pb-8">
           <div className="flex items-center gap-10 opacity-90">
-            <ChangingFuturesMark />
-            <CadburyMark />
-            <AsuMark />
+            <ChangingFuturesMark className="h-12 w-24" />
+            <CadburyMark className="h-8 w-32" />
+            <AsuMark className="h-8 w-20" />
           </div>
           <div className="text-right">
             <p className="font-display text-lg italic text-foreground/90 md:text-2xl">
