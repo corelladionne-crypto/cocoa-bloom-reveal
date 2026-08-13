@@ -79,7 +79,7 @@ function RootedExperience() {
       setProgress((p) => (p >= 0.9 ? 1 : 0));
     };
     window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", move && up);
+    window.addEventListener("pointerup", up);
     return () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
