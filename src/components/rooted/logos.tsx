@@ -1,36 +1,47 @@
-export function CadburyMark() {
+import asuLogo from "@/assets/asu-logo.png.asset.json";
+import cadburyLogo from "@/assets/cadbury-logo.png.asset.json";
+import cfLogo from "@/assets/changing-futures-logo.png.asset.json";
+
+/**
+ * Brand logos are solid black artwork on transparent PNGs, so they are painted
+ * as gold via CSS masking rather than tinted with filters.
+ */
+function GoldLogo({
+  url,
+  label,
+  className,
+}: {
+  url: string;
+  label: string;
+  className: string;
+}) {
   return (
-    <span className="font-display text-2xl italic tracking-wide text-gold">Cadbury</span>
+    <span
+      role="img"
+      aria-label={label}
+      className={`block bg-gold ${className}`}
+      style={{
+        WebkitMaskImage: `url(${url})`,
+        maskImage: `url(${url})`,
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskPosition: "left center",
+        maskPosition: "left center",
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+      }}
+    />
   );
 }
 
-export function AsuMark() {
-  return (
-    <span className="flex items-center gap-2">
-      <span className="grid size-7 place-items-center rounded-full border border-gold/70 font-sans text-[10px] font-semibold tracking-widest text-gold">
-        ASU
-      </span>
-      <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/80">
-        Arizona State
-      </span>
-    </span>
-  );
+export function CadburyMark({ className = "h-9 w-40" }: { className?: string }) {
+  return <GoldLogo url={cadburyLogo.url} label="Cadbury" className={className} />;
 }
 
-export function ChangingFuturesMark() {
-  return (
-    <span className="flex items-center gap-2">
-      <svg viewBox="0 0 24 24" className="size-5 text-gold" fill="none" aria-hidden>
-        <path
-          d="M12 21V9m0 0c0-3 2-5 5-5 0 3-2 5-5 5Zm0 3c0-3-2-5-5-5 0 3 2 5 5 5Z"
-          stroke="currentColor"
-          strokeWidth="1"
-          strokeLinecap="round"
-        />
-      </svg>
-      <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/80">
-        Changing Futures
-      </span>
-    </span>
-  );
+export function AsuMark({ className = "h-9 w-24" }: { className?: string }) {
+  return <GoldLogo url={asuLogo.url} label="Arizona State University" className={className} />;
+}
+
+export function ChangingFuturesMark({ className = "h-14 w-32" }: { className?: string }) {
+  return <GoldLogo url={cfLogo.url} label="Changing Futures" className={className} />;
 }
