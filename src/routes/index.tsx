@@ -1,253 +1,333 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
-import cacaoBranch from "@/assets/cacao-branch.png.asset.json";
-import cacaoBean from "@/assets/cacao-bean.png.asset.json";
-import cacaoTree from "@/assets/cacao-tree-gold.png.asset.json";
+import cacaoBean from "@/assets/cacao-bean.svg";
+import cacaoBranch from "@/assets/cacao-branch.svg";
+import cacaoTree from "@/assets/cacao-tree-gold.svg";
+import kraftStrip from "@/assets/kraft-strip.svg";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "COCOA / Rooted — A Gifting Reveal" },
-      { name: "description", content: "Tear the cocoa package, plant a cacao seed, and grow a living tree." },
+      { name: "description", content: "A tactile cocoa experience: reveal, sow, plant, and grow." },
     ],
   }),
   component: RootedExperience,
 });
 
-const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
-const SOFT = "cubic-bezier(0.22, 1, 0.36, 1)";
-const KRAFT = "#C99E68";
-const GOLD = "#E9C25A";
-
 type Step = 1 | 2 | 3 | 4 | 5;
+type Planting = {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  plantedAt: number;
+};
+
+const STORE_KEY = "cocoa-rooted-plantings";
+const CHANNEL_NAME = "cocoa-rooted-grove";
+const BUTTON =
+  "inline-flex min-h-14 items-center justify-center rounded-full bg-gold px-7 py-4 font-sans text-xs font-semibold uppercase tracking-[0.24em] text-plum-deep transition duration-300 hover:scale-[1.02] hover:bg-gold-soft active:scale-95 disabled:opacity-50";
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
-    const stored = window.localStorage.getItem("rooted-reduced-motion");
-    setReduced(stored !== null ? stored === "1" : window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
-  const toggle = useCallback(() => setReduced((v) => {
-    const next = !v;
-    window.localStorage.setItem("rooted-reduced-motion", next ? "1" : "0");
-    return next;
-  }), []);
-  return { reduced, toggle };
+  return reduced;
 }
 
-function MotionToggle({ reduced, toggle }: { reduced: boolean; toggle: () => void }) {
+function MotionToggle({ reduced }: { reduced: boolean }) {
   return (
-    <button type="button" onClick={toggle} aria-pressed={reduced}
-      className="absolute right-3 top-3 z-50 rounded-full border border-gold/40 bg-plum-deep/70 px-4 py-3 font-sans text-[10px] uppercase tracking-[0.15em] text-gold-soft backdrop-blur-sm">
-      {reduced ? "Motion off" : "Motion on"}
-    </button>
+    <span className="absolute right-5 top-5 z-50 rounded-full border border-gold/20 bg-plum-deep/50 px-3 py-2 font-sans text-[9px] uppercase tracking-[0.18em] text-gold/70 backdrop-blur-sm">
+      {reduced ? "Reduced motion" : "Rooted"}
+    </span>
   );
 }
 
-function seamY(i: number, total = 70) {
-  const n = (x: number) => {
-    const v = Math.sin(x * 127.1 + 311.7) * 43758.5453;
-    return v - Math.floor(v);
-  };
-  const t = i / total;
-  return 50 + Math.sin(t * Math.PI * 7) * 1.2 + (n(i) - 0.5) * 2.4 + Math.sin(t * Math.PI * 2.2) * 1.8;
+function readPlantings(): Planting[] {
+  try {
+    const raw = window.localStorage.getItem(STORE_KEY);
+    return raw ? (JSON.parse(raw) as Planting[]) : [];
+  } catch {
+    return [];
+  }
 }
 
-function halfClip(side: "top" | "bottom", progress: number) {
-  const total = 70;
-  const points = Array.from({ length: total + 1 }, (_, i) => `${((i / total) * 100).toFixed(2)}% ${seamY(i, total).toFixed(2)}%`);
-  if (side === "top") return `polygon(0 0,100% 0,100% ${seamY(total, total)}%,${points.slice().reverse().join(",")})`;
-  return `polygon(${points.join(",")},100% 100%,0 100%)`;
+function savePlanting(planting: Planting) {
+  const next = [...readPlantings(), planting];
+  window.localStorage.setItem(STORE_KEY, JSON.stringify(next));
+  window.dispatchEvent(new StorageEvent("storage", { key: STORE_KEY, newValue: JSON.stringify(next) }));
+  try {
+    const channel = new BroadcastChannel(CHANNEL_NAME);
+    channel.postMessage({ type: "planting", planting, plantings: next });
+    channel.close();
+  } catch {
+    // BroadcastChannel is optional; localStorage still keeps the same-browser projector in sync.
+  }
 }
 
 function RootedExperience() {
-  const { reduced, toggle } = useReducedMotion();
+  const reduced = useReducedMotion();
   const [step, setStep] = useState<Step>(1);
-  const [tearProgress, setTearProgress] = useState(0);
-  const [tearing, setTearing] = useState(false);
-  const [growing, setGrowing] = useState(false);
   const [name, setName] = useState("");
-  const [trees, setTrees] = useState(137);
-  const startedRef = useRef(false);
-  const countedRef = useRef(false);
+  const [landingOpened, setLandingOpened] = useState(false);
+  const [planting, setPlanting] = useState(false);
+  const submittedRef = useRef(false);
 
-  const ms = useCallback((n: number) => reduced ? Math.min(n, 140) : n, [reduced]);
-
-  const begin = () => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    setTearing(true);
-    const start = performance.now();
-    const duration = ms(1800);
-    const animate = (now: number) => {
-      const p = Math.min(1, (now - start) / duration);
-      setTearProgress(p);
-      if (p < 1) requestAnimationFrame(animate);
-      else setTimeout(() => setStep(2), ms(650));
+  const rootTree = () => {
+    if (submittedRef.current || !name.trim()) return;
+    submittedRef.current = true;
+    const planting: Planting = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: name.trim(),
+      x: 7 + Math.random() * 86,
+      y: 48 + Math.random() * 38,
+      scale: 0.55 + Math.random() * 0.65,
+      rotation: -7 + Math.random() * 14,
+      plantedAt: Date.now(),
     };
-    requestAnimationFrame(animate);
+    savePlanting(planting);
+    setStep(5);
   };
 
-  const plantSeed = () => {
-    setGrowing(true);
-    setTimeout(() => setStep(4), ms(2100));
+  const startAgain = () => {
+    submittedRef.current = false;
+    setName("");
+    setLandingOpened(false);
+    setStep(1);
   };
-
-  const submitName = (e: React.FormEvent) => {
-    e.preventDefault();
-    setTimeout(() => setStep(5), ms(700));
-  };
-
-  useEffect(() => {
-    if (step === 5 && !countedRef.current) {
-      countedRef.current = true;
-      setTrees((v) => v + 1);
-    }
-  }, [step]);
-
-  if (step === 5) return <GroveScreen trees={trees} name={name} reduced={reduced} toggle={toggle} />;
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
-      <div className="relative h-[844px] w-[390px] overflow-hidden rounded-[2rem] shadow-2xl">
-        <MotionToggle reduced={reduced} toggle={toggle} />
-
+    <main className="min-h-dvh overflow-hidden bg-[#24152A] text-foreground">
+      <div className="relative min-h-dvh w-full">
+        <MotionToggle reduced={reduced} />
         {step === 1 && (
-          <div className="absolute inset-0 overflow-hidden" onClick={!tearing ? begin : undefined}>
-            <div className="absolute inset-0 bg-plum" />
-            <div className="absolute inset-0" style={{ clipPath: halfClip("top", tearProgress), transform: `translateY(${-tearProgress * 90}px) rotate(${-tearProgress * 1.2}deg)`, transition: tearing ? "none" : `transform ${ms(600)}ms ${SPRING}` }}>
-              <WelcomePackaging />
-            </div>
-            <div className="absolute inset-0" style={{ clipPath: halfClip("bottom", tearProgress), transform: `translateY(${tearProgress * 90}px) rotate(${tearProgress * 1.2}deg)`, transition: tearing ? "none" : `transform ${ms(600)}ms ${SPRING}` }}>
-              <WelcomePackaging />
-            </div>
-            <TearLine progress={tearProgress} />
-            {!tearing && <ClickToBegin />}
-          </div>
+          <LandingScreen
+            opened={landingOpened}
+            onOpen={() => setLandingOpened(true)}
+            onBegin={() => setStep(2)}
+          />
         )}
-
-        {step === 2 && <SowScreen onNext={() => setStep(3)} />}
-        {step === 3 && <PlantScreen growing={growing} onPlant={plantSeed} reduced={reduced} />}
-        {step === 4 && <GrowScreen name={name} setName={setName} onSubmit={submitName} />}
+        {step === 2 && <SowScreen onNext={() => setStep(3)} reduced={reduced} />}
+        {step === 3 && (
+          <PlantScreen
+            planting={planting}
+            onPlant={() => {
+              setPlanting(true);
+              window.setTimeout(() => setStep(4), reduced ? 500 : 1900);
+            }}
+            reduced={reduced}
+          />
+        )}
+        {step === 4 && (
+          <GrowScreen
+            name={name}
+            setName={setName}
+            onSubmit={(event) => {
+              event.preventDefault();
+              rootTree();
+            }}
+          />
+        )}
+        {step === 5 && <ThankYouScreen name={name} onAgain={startAgain} />}
       </div>
     </main>
   );
 }
 
-function WelcomePackaging() {
+function LandingScreen({ opened, onOpen, onBegin }: { opened: boolean; onOpen: () => void; onBegin: () => void }) {
   return (
-    <section className="relative h-full w-full overflow-hidden" style={{ background: KRAFT }}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.18),transparent_62%)]" />
-      <div className="relative flex h-full flex-col items-center justify-center px-8 text-center">
-        <img src={cacaoBranch.url} alt="Cocoa pod illustration" className="w-[290px] drop-shadow-[0_0_24px_rgba(233,194,90,0.32)]" draggable={false} />
-        <p className="mt-7 font-display text-[11px] italic text-plum-deep/80">An academic experience presented by Arizona State University and Cadbury</p>
-        <h1 className="mt-2 font-display text-6xl font-light tracking-wide text-[#E9C25A]">COCOA</h1>
-        <p className="mt-1 font-display text-xl italic text-plum-deep">Theobroma Cacao</p>
-        <p className="absolute bottom-16 font-display text-base italic text-[#E9C25A]">Grown, not just made</p>
+    <section
+      className="relative min-h-dvh overflow-hidden bg-plum"
+      onClick={() => {
+        if (!opened) onOpen();
+      }}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(233,194,90,0.08),transparent_38%),linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.16))]" />
+      <div className="relative flex min-h-dvh flex-col items-center justify-center px-6 pb-24 text-center">
+        <div className="mb-8 font-sans text-[10px] uppercase tracking-[0.42em] text-gold/60">COCOA / ROOTED</div>
+        <img src={cacaoBranch} alt="Cacao pod and leaves" className="w-[min(68vw,560px)] drop-shadow-[0_0_28px_rgba(233,194,90,0.12)]" draggable={false} />
+        <h1 className="mt-8 font-display text-[clamp(4rem,11vw,8rem)] font-light leading-none tracking-[0.08em] text-gold">COCOA</h1>
+        <p className="mt-3 font-display text-xl italic text-gold-soft/80">Grown, not just made.</p>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpen();
+          }}
+          className="mt-10 font-display text-lg italic text-gold/75 transition hover:text-gold"
+        >
+          Tap anywhere to begin
+        </button>
+      </div>
+
+      <div
+        className={`absolute inset-x-0 bottom-0 z-20 transform transition-transform duration-700 ease-soft ${opened ? "translate-y-0" : "translate-y-full"}`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mx-auto max-w-3xl rounded-t-[2.5rem] border border-gold/15 bg-plum-deep/95 px-7 pb-8 pt-6 shadow-2xl backdrop-blur-xl md:px-12 md:pt-8">
+          <div className="mx-auto mb-7 h-1 w-12 rounded-full bg-gold/30" />
+          <div className="flex items-end justify-between gap-5">
+            <div className="max-w-xl text-left">
+              <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/55">A small action can grow something bigger.</p>
+              <h2 className="mt-2 font-display text-4xl font-light text-gold-soft md:text-5xl">Open the reveal.</h2>
+              <p className="mt-2 max-w-lg font-sans text-sm leading-relaxed text-foreground/65">Unwrap the story of cacao, place a seed in the ground, and leave a living mark behind.</p>
+            </div>
+            <button type="button" onClick={onBegin} className={`${BUTTON} shrink-0`}>Begin</button>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
-function ClickToBegin() {
-  return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-20 flex justify-center">
-      <p className="font-display text-xl italic text-[#E9C25A] drop-shadow-[0_1px_8px_rgba(0,0,0,0.18)]">Click to begin</p>
-    </div>
-  );
-}
+function SowScreen({ onNext, reduced }: { onNext: () => void; reduced: boolean }) {
+  const [transitioning, setTransitioning] = useState(false);
 
-function TearLine({ progress }: { progress: number }) {
-  const arrowX = 8 + progress * 84;
-  return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-[18%] h-10">
-      <div className="absolute left-[8%] right-[8%] top-1/2 h-[2px] -translate-y-1/2 origin-left bg-[#E9C25A]" style={{ transform: `scaleX(${progress})`, boxShadow: "0 0 12px rgba(233,194,90,.55)" }} />
-      <div className="absolute top-1/2 -translate-y-1/2" style={{ left: `${arrowX}%`, opacity: progress > 0 ? 1 : 0 }}>
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden>
-          <path d="M3 15h20M17 8l7 7-7 7" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-    </div>
-  );
-}
+  const beginGrowing = () => {
+    if (transitioning) return;
+    setTransitioning(true);
+    window.setTimeout(onNext, reduced ? 350 : 1250);
+  };
 
-const BUTTON = "mt-8 min-h-14 w-full rounded-full bg-gold px-6 py-4 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 hover:scale-[1.03] active:scale-95";
-
-function SowScreen({ onNext }: { onNext: () => void }) {
   return (
-    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
-      <CadburyMark />
-      <div>
-        <h2 className="font-display text-5xl font-light leading-tight text-gold-soft">Sow<span className="block text-xl italic text-gold/70">Cadbury</span></h2>
-        <p className="mt-5 font-sans text-sm leading-relaxed text-foreground/75">Every bean inside this bar comes through Cocoa Life — a programme working alongside farming communities in Ghana and Côte d'Ivoire to grow cacao that restores soil, shade and income.</p>
-        <button type="button" onClick={onNext} className={BUTTON}>Start growing</button>
+    <section className={`relative min-h-dvh overflow-hidden bg-plum transition-all duration-700 ${transitioning ? "scale-[1.02] opacity-0" : "opacity-100"}`}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(233,194,90,0.08),transparent_34%)]" />
+      <div className="relative z-10 flex min-h-dvh flex-col px-6 pb-8 pt-8 md:px-12 md:pt-10">
+        <div className="flex items-center justify-between">
+          <CadburyMark className="h-12 w-48" />
+          <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/45">01 / 04</span>
+        </div>
+
+        <div className="mx-auto mt-12 flex w-full max-w-4xl flex-1 flex-col items-center justify-end text-center">
+          <div className="relative w-full max-w-2xl overflow-hidden rounded-[2.25rem] bg-[#C99E68] px-7 pb-10 pt-16 text-left shadow-2xl shadow-black/20 md:px-12">
+            <img src={kraftStrip} alt="Torn kraft paper" className="absolute inset-x-0 top-0 h-16 w-full" draggable={false} />
+            <div className="relative z-10">
+              <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-plum-deep/55">SOW / CADBURY</p>
+              <h2 className="mt-2 font-display text-5xl font-light leading-none text-plum-deep md:text-7xl">Sow.</h2>
+              <p className="mt-5 max-w-xl font-sans text-sm leading-7 text-plum-deep/75 md:text-base">Every bar begins with cacao. This moment is about what happens before chocolate — the seed, the soil, and the people who grow it.</p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <button type="button" onClick={beginGrowing} className={BUTTON} disabled={transitioning}>Start growing</button>
+                <span className="font-display text-sm italic text-plum-deep/55">Watch the paper become a seed.</span>
+              </div>
+            </div>
+          </div>
+
+          <div className={`pointer-events-none absolute bottom-[18%] left-1/2 -translate-x-1/2 transition-all duration-1000 ease-soft ${transitioning ? "scale-100 opacity-100" : "scale-0 opacity-0"}`}>
+            <img src={cacaoBean} alt="Cacao seed" className="w-32 md:w-44" />
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
-function PlantScreen({ growing, onPlant, reduced }: { growing: boolean; onPlant: () => void; reduced: boolean }) {
-  const dur = reduced ? 150 : 1400;
+function PlantScreen({ planting, onPlant, reduced }: { planting: boolean; onPlant: () => void; reduced: boolean }) {
   return (
-    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
-      <AsuMark />
-      <div className="relative flex flex-1 flex-col items-center justify-end pb-24">
-        <div className="absolute bottom-24 w-[3px] origin-bottom rounded-full bg-gradient-to-t from-gold via-gold-soft to-transparent" style={{ height: 300, transform: growing ? "scaleY(0)" : "scaleY(1)", opacity: growing ? 0 : 1, transition: `transform ${dur}ms ${SOFT}, opacity ${dur / 2}ms ${SOFT}` }} />
-        <img src={cacaoTree.url} alt="" aria-hidden className="absolute bottom-24 w-64 origin-bottom" style={{ transform: growing ? "scale(1)" : "scale(0.05)", opacity: growing ? 1 : 0, transition: `transform ${dur}ms ${SPRING} ${reduced ? 0 : 500}ms, opacity ${dur}ms ${SOFT} ${reduced ? 0 : 500}ms` }} />
-        <img src={cacaoBean.url} alt="Cacao seed" className="relative mb-20 w-40" style={{ transform: growing ? "translateY(90px) scale(.45)" : "none", opacity: growing ? 0 : 1, transition: `transform ${dur}ms ${SOFT}, opacity ${dur}ms ${SOFT}` }} />
-      </div>
-      <div>
-        <h2 className="font-display text-5xl font-light leading-tight text-gold-soft">Plant<span className="block text-xl italic text-gold/70">Arizona State University</span></h2>
-        <button type="button" onClick={onPlant} disabled={growing} className={`${BUTTON} disabled:opacity-70`}>{growing ? "Growing…" : "Plant my seed"}</button>
+    <section className="relative min-h-dvh overflow-hidden bg-plum px-6 pb-8 pt-8 md:px-12 md:pt-10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(233,194,90,0.08),transparent_40%)]" />
+      <div className="relative z-10 flex min-h-dvh flex-col">
+        <div className="flex items-center justify-between">
+          <AsuMark className="h-12 w-32" />
+          <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/45">02 / 04</span>
+        </div>
+
+        <div className="relative flex flex-1 items-end justify-center pb-24 pt-10">
+          <div className="absolute bottom-20 left-0 right-0 h-20 overflow-hidden bg-[#C99E68]/90">
+            <img src={kraftStrip} alt="Torn soil edge" className="absolute -top-8 h-14 w-full rotate-180" />
+            <div className="absolute inset-x-0 bottom-0 h-10 bg-[#B88955]/60" />
+          </div>
+          <img
+            src={cacaoTree}
+            alt="Cacao tree illustration"
+            className="absolute bottom-[5.4rem] w-[min(65vw,560px)] origin-bottom transition-all ease-spring"
+            style={{
+              transform: planting ? "scale(1)" : "scale(0.02)",
+              opacity: planting ? 1 : 0,
+              transitionDuration: reduced ? "250ms" : "1300ms",
+              transitionDelay: reduced ? "0ms" : "600ms",
+            }}
+          />
+          <img
+            src={cacaoBean}
+            alt="Cacao seed"
+            className="relative z-10 w-[min(22vw,150px)] transition-all ease-soft"
+            style={{
+              transform: planting ? "translateY(190px) scale(0.3) rotate(12deg)" : "translateY(-20px) scale(1)",
+              opacity: planting ? 0 : 1,
+              transitionDuration: reduced ? "250ms" : "800ms",
+            }}
+          />
+        </div>
+
+        <div className="mx-auto w-full max-w-2xl text-center">
+          <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/55">PLANT / ARIZONA STATE UNIVERSITY</p>
+          <h2 className="mt-2 font-display text-5xl font-light text-gold-soft md:text-6xl">Put it in the ground.</h2>
+          <button type="button" onClick={onPlant} disabled={planting} className={`mt-6 ${BUTTON}`}>{planting ? "Taking root…" : "Plant my seed"}</button>
+        </div>
       </div>
     </section>
   );
 }
 
-function GrowScreen({ name, setName, onSubmit }: { name: string; setName: (v: string) => void; onSubmit: (e: React.FormEvent) => void }) {
+function GrowScreen({ name, setName, onSubmit }: { name: string; setName: (value: string) => void; onSubmit: (event: FormEvent<HTMLFormElement>) => void }) {
   return (
-    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
-      <ChangingFuturesMark />
-      <img src={cacaoTree.url} alt="Gold cacao tree" className="mx-auto w-72" />
-      <form onSubmit={onSubmit}>
-        <h2 className="font-display text-5xl font-light leading-tight text-gold-soft">Grow<span className="block text-xl italic text-gold/70">Changing Futures</span></h2>
-        <label className="mt-6 block font-sans text-[11px] uppercase tracking-[0.3em] text-foreground/60">Name
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your tree" className="mt-2 min-h-14 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 font-sans text-base normal-case tracking-normal text-foreground outline-none focus:border-gold" />
-        </label>
-        <button type="submit" className={BUTTON}>Root my tree</button>
-      </form>
+    <section className="relative min-h-dvh overflow-hidden bg-plum px-6 pb-8 pt-8 md:px-12 md:pt-10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(233,194,90,0.08),transparent_38%)]" />
+      <div className="relative z-10 flex min-h-dvh flex-col">
+        <div className="flex items-center justify-between">
+          <ChangingFuturesMark className="h-20 w-44" />
+          <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/45">03 / 04</span>
+        </div>
+
+        <div className="flex flex-1 items-center justify-center py-8">
+          <img src={cacaoTree} alt="Cacao tree illustration" className="w-[min(58vw,500px)] opacity-95" />
+        </div>
+
+        <form onSubmit={onSubmit} className="mx-auto w-full max-w-xl">
+          <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/55">GROW / CHANGING FUTURES</p>
+          <h2 className="mt-2 font-display text-5xl font-light leading-none text-gold-soft md:text-6xl">Give your tree a name.</h2>
+          <label className="mt-7 block">
+            <span className="sr-only">Name your tree</span>
+            <input
+              required
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Type your name"
+              className="h-16 w-full rounded-2xl border border-gold/30 bg-plum-deep/70 px-5 font-display text-2xl italic text-gold-soft outline-none placeholder:text-gold/30 focus:border-gold"
+            />
+          </label>
+          <button type="submit" className={`mt-4 w-full ${BUTTON}`}>Root my tree</button>
+        </form>
+      </div>
     </section>
   );
 }
 
-function GroveScreen({ trees, name, reduced, toggle }: { trees: number; name: string; reduced: boolean; toggle: () => void }) {
-  const plants = useMemo(() => Array.from({ length: 28 }, (_, i) => {
-    const r = (s: number) => { const x = Math.sin(i * 91.3 + s * 47.7) * 43758.5453; return x - Math.floor(x); };
-    return { left: 4 + r(2) * 88, top: 30 + r(3) * 52, size: r(1) < .35 ? 22 : r(1) < .7 ? 54 : 90, opacity: .55 + r(5) * .45 };
-  }), []);
-
+function ThankYouScreen({ name, onAgain }: { name: string; onAgain: () => void }) {
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
-      <div className="relative aspect-[16/9] w-full max-w-6xl overflow-hidden rounded-3xl bg-plum shadow-2xl">
-        <MotionToggle reduced={reduced} toggle={toggle} />
-        <div className="relative px-10 pt-8">
-          <h1 className="font-display text-3xl font-semibold uppercase tracking-[0.08em] text-gold md:text-4xl">A Living Grove</h1>
-          <p className="font-display text-sm italic text-foreground/85 md:text-lg">Presented to you by Arizona State University × Cadbury × Changing Futures</p>
+    <section className="relative min-h-dvh overflow-hidden bg-plum px-6 py-8 md:px-12">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(233,194,90,0.1),transparent_36%)]" />
+      <div className="relative flex min-h-dvh flex-col items-center justify-between text-center">
+        <div className="flex w-full items-center justify-between">
+          <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/45">04 / 04</span>
+          <span className="font-display text-lg italic text-gold/70">COCOA / ROOTED</span>
         </div>
-        <div className="absolute inset-0">
-          {plants.slice(0, Math.max(4, Math.min(plants.length, trees % plants.length || 12))).map((p, i) => <img key={i} src={p.size > 30 ? cacaoTree.url : cacaoBean.url} alt="" aria-hidden className="absolute" style={{ left: `${p.left}%`, top: `${p.top}%`, width: p.size, opacity: p.opacity }} />)}
+
+        <div className="flex flex-col items-center">
+          <img src={cacaoBranch} alt="Cacao illustration" className="mb-8 w-[min(54vw,420px)]" />
+          <p className="font-sans text-[10px] uppercase tracking-[0.34em] text-gold/55">THANK YOU</p>
+          <h2 className="mt-4 font-display text-6xl font-light text-gold-soft md:text-8xl">{name || "Friend"}</h2>
+          <p className="mt-4 max-w-lg font-display text-xl italic leading-relaxed text-foreground/75">Your seed is rooted. Look to the grove to see it join the others.</p>
         </div>
-        <div className="absolute left-1/2 top-[46%] flex -translate-x-1/2 flex-col items-center text-center">
-          <img src={cacaoTree.url} alt={name ? `${name}'s cacao tree` : "Cacao tree"} className="w-56 md:w-72" />
-          {name && <p className="mt-3 font-display text-2xl italic text-gold-soft md:text-3xl">{name}</p>}
-        </div>
-        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between px-10 pb-8">
-          <div className="flex items-center gap-10 opacity-90"><ChangingFuturesMark className="h-12 w-24" /><CadburyMark className="h-8 w-32" /><AsuMark className="h-8 w-20" /></div>
-          <div className="text-right"><p className="font-display text-lg italic text-foreground/90 md:text-2xl">Trees Planted: {trees}/400</p><div className="mt-2 h-1 w-64 overflow-hidden rounded-full bg-foreground/15"><div className="h-full rounded-full bg-gold transition-all duration-1000" style={{ width: `${(trees / 400) * 100}%` }} /></div></div>
-        </div>
+
+        <button type="button" onClick={onAgain} className="mb-2 font-display text-lg italic text-gold/70 transition hover:text-gold">Plant another tree</button>
       </div>
-    </main>
+    </section>
   );
 }
