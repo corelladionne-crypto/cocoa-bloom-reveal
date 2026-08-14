@@ -88,6 +88,15 @@
   }
 }
 
+/* The participant experience stays phone-width even when previewed on a laptop/projector. */
+@media (min-width: 431px) {
+  main > div > div {
+    width: 430px;
+    max-width: 430px;
+    margin-inline: auto;
+  }
+}
+
 @utility font-display {
   font-family: var(--font-display);
 }
