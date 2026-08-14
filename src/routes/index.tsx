@@ -188,8 +188,12 @@ function RootedExperience() {
         {/* Screen 1 packaging, ripped apart down the middle */}
         {step === 1 ? (
           <div
-            className="absolute inset-0"
-            style={{ opacity: tearDone ? 0 : 1, transition: `opacity ${ms(600)}ms ${SOFT}` }}
+            className="absolute inset-0 select-none"
+            style={{
+              opacity: tearDone ? 0 : 1,
+              pointerEvents: tearDone ? "none" : undefined,
+              transition: `opacity ${ms(600)}ms ${SOFT}`,
+            }}
           >
             {(["left", "right"] as const).map((side) => (
               <div
@@ -197,29 +201,30 @@ function RootedExperience() {
                 className="absolute inset-0"
                 style={{
                   clipPath: tearHalfPath(side, progress),
-                  transform: `translateX(${(side === "left" ? -1 : 1) * progress * 120}px) rotate(${
-                    (side === "left" ? -1 : 1) * progress * 3
+                  transform: `translateX(${(side === "left" ? -1 : 1) * progress * 150}px) rotate(${
+                    (side === "left" ? -1 : 1) * progress * 4
                   }deg)`,
                   transformOrigin: side === "left" ? "left bottom" : "right bottom",
                   transition: halfTransition,
                 }}
               >
-                <WelcomeScreen
-                  dimmed={dimmed}
-                  progress={progress}
-                  reduced={reduced}
-                  showControls={side === "left"}
-                  trackRef={trackRef}
-                  onHandleDown={(e) => {
-                    draggingRef.current = true;
-                    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-                  }}
-                />
+                <WelcomeScreen dimmed={dimmed} reduced={reduced} />
               </div>
             ))}
             <PaperFibers progress={progress} reduceMotion={reduced} />
+            <TearControls
+              dimmed={dimmed}
+              progress={progress}
+              reduced={reduced}
+              trackRef={trackRef}
+              onHandleDown={(e) => {
+                draggingRef.current = true;
+                (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+              }}
+            />
           </div>
         ) : null}
+
 
         {/* The torn paper crumples into a seed on the way to the Plant screen */}
         {step === 2.5 ? <PaperToSeed reduced={reduced} /> : null}
@@ -293,18 +298,10 @@ function PaperToSeed({ reduced }: { reduced: boolean }) {
 
 function WelcomeScreen({
   dimmed,
-  progress,
   reduced,
-  showControls,
-  trackRef,
-  onHandleDown,
 }: {
   dimmed: boolean;
-  progress: number;
   reduced: boolean;
-  showControls: boolean;
-  trackRef: React.RefObject<HTMLDivElement | null>;
-  onHandleDown: (e: React.PointerEvent) => void;
 }) {
   return (
     <section
@@ -325,6 +322,7 @@ function WelcomeScreen({
         <img
           src={cacaoBranch.url}
           alt="Gold line drawing of a cacao pod"
+          draggable={false}
           className="w-64 drop-shadow-[0_0_30px_rgba(233,194,90,0.35)]"
         />
         <h1 className="mt-6 font-display text-5xl font-light tracking-wide text-gold-soft">
@@ -332,55 +330,73 @@ function WelcomeScreen({
         </h1>
         <p className="mt-2 font-display text-lg italic text-gold/80">Theobroma Cacao</p>
       </div>
-
-      {/* Vertical rip control: pull downwards to tear the pack open */}
-      {showControls ? (
-        <div
-          className="absolute inset-0 transition-all"
-          style={{
-            opacity: dimmed ? 1 : 0,
-            transitionDuration: reduced ? "120ms" : "700ms",
-            transitionTimingFunction: SPRING,
-          }}
-        >
-          <p className="absolute inset-x-0 top-8 px-10 text-center font-sans text-[13px] leading-relaxed text-gold-soft/90">
-            Pull the handle straight down to rip the packaging open.
-          </p>
-          <div
-            ref={trackRef}
-            className="absolute left-1/2 w-[72px] -translate-x-1/2 rounded-full border border-gold/40 bg-plum-deep/50 backdrop-blur-sm"
-            style={{ top: "18%", height: "68%" }}
-          >
-            <div
-              className="absolute inset-x-1 top-1 rounded-full bg-gold/15"
-              style={{ height: `calc(${Math.max(progress, 0.001) * 100}% - 0.5rem)` }}
-            />
-            <button
-              type="button"
-              aria-label="Drag down to rip the packaging"
-              onPointerDown={onHandleDown}
-              className="absolute left-1/2 grid size-16 -translate-x-1/2 cursor-grab touch-none place-items-center rounded-full bg-gold text-plum-deep glow-gold active:cursor-grabbing"
-              style={{
-                top: `calc(0.25rem + ${progress} * (100% - 4.5rem))`,
-                transition: `top ${reduced ? 100 : 400}ms ${SPRING}`,
-              }}
-            >
-              <svg viewBox="0 0 24 24" className="size-7" fill="none" aria-hidden>
-                <path
-                  d="M12 5v13m0 0-5-5m5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
+
+/** Vertical rip control: pull downwards to tear the pack open. */
+function TearControls({
+  dimmed,
+  progress,
+  reduced,
+  trackRef,
+  onHandleDown,
+}: {
+  dimmed: boolean;
+  progress: number;
+  reduced: boolean;
+  trackRef: React.RefObject<HTMLDivElement | null>;
+  onHandleDown: (e: React.PointerEvent) => void;
+}) {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 transition-all"
+      style={{
+        opacity: dimmed ? 1 : 0,
+        transitionDuration: reduced ? "120ms" : "700ms",
+        transitionTimingFunction: SPRING,
+      }}
+    >
+      <p
+        className="absolute inset-x-0 top-10 px-10 text-center font-sans text-[13px] leading-relaxed text-gold-soft"
+        style={{ opacity: 1 - progress }}
+      >
+        Pull the handle straight down to rip the packaging open.
+      </p>
+      <div
+        ref={trackRef}
+        className="pointer-events-auto absolute left-1/2 w-[72px] -translate-x-1/2 rounded-full border border-gold/30 bg-plum-deep/40 backdrop-blur-sm"
+        style={{ top: "20%", height: "66%" }}
+      >
+        <div
+          className="absolute inset-x-1 top-1 rounded-full bg-gold/15"
+          style={{ height: `calc(${Math.max(progress, 0.001) * 100}% - 0.5rem)` }}
+        />
+        <button
+          type="button"
+          aria-label="Drag down to rip the packaging"
+          onPointerDown={onHandleDown}
+          className="absolute left-1/2 grid size-16 -translate-x-1/2 cursor-grab touch-none place-items-center rounded-full bg-gold text-plum-deep glow-gold active:cursor-grabbing"
+          style={{
+            top: `calc(0.25rem + ${progress} * (100% - 4.5rem))`,
+            transition: `top ${reduced ? 100 : 400}ms ${SPRING}`,
+          }}
+        >
+          <svg viewBox="0 0 24 24" className="size-7" fill="none" aria-hidden>
+            <path
+              d="M12 5v13m0 0-5-5m5 5 5-5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 const BUTTON =
   "mt-8 min-h-14 w-full rounded-full bg-gold px-6 py-4 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95";
