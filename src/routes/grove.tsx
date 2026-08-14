@@ -54,8 +54,10 @@ function GroveProjector() {
       channel.onmessage = (event) => {
         if (event.data?.type !== "planting") return;
         const incoming = event.data.planting as Planting;
-        setPlantings((current) => current.some((item) => item.id === incoming.id) ? current : [...current, incoming]);
-        setNewIds((current) => [...current, incoming.id]);
+        setPlantings((current) => (current.some((item) => item.id === incoming.id) ? current : [...current, incoming]));
+
+        // Let the tree first appear tiny at its planting point, then grow into the grove.
+        requestAnimationFrame(() => setNewIds((current) => [...current, incoming.id]));
         window.setTimeout(() => setNewIds((current) => current.filter((id) => id !== incoming.id)), 1800);
       };
     } catch {
@@ -94,44 +96,54 @@ function GroveProjector() {
       <section className="absolute inset-x-0 bottom-24 top-40">
         <div className="absolute inset-x-0 bottom-0 h-[19%] bg-[#8B633F]/20" />
         <div className="absolute inset-x-0 bottom-[18%] h-px bg-gold/10" />
-        {plantings.map((plant) => (
-          <img
-            key={plant.id}
-            src={cacaoTree}
-            alt="Planted cacao tree"
-            className="absolute w-[clamp(70px,10vw,170px)] origin-bottom drop-shadow-[0_0_18px_rgba(233,194,90,0.08)] transition-all duration-[1400ms] ease-spring"
-            style={{
-              left: `${plant.x}%`,
-              top: `${plant.y}%`,
-              transform: `translate(-50%, -100%) rotate(${plant.rotation}deg) scale(${newIds.includes(plant.id) ? plant.scale * 0.12 : plant.scale})`,
-              opacity: newIds.includes(plant.id) ? 0.15 : 1,
-              transformOrigin: "50% 100%",
-            }}
-            draggable={false}
-          />
-        ))}
+        {plantings.map((plant) => {
+          const isNew = newIds.includes(plant.id);
+          return (
+            <img
+              key={plant.id}
+              src={cacaoTree}
+              alt="Planted cacao tree"
+              className="absolute w-[clamp(70px,10vw,170px)] origin-bottom drop-shadow-[0_0_18px_rgba(233,194,90,0.08)] transition-all duration-[1400ms] ease-spring"
+              style={{
+                left: `${plant.x}%`,
+                top: `${plant.y}%`,
+                transform: `translate(-50%, -100%) rotate(${plant.rotation}deg) scale(${isNew ? plant.scale * 0.12 : plant.scale})`,
+                opacity: isNew ? 0.15 : 1,
+                transformOrigin: "50% 100%",
+              }}
+              draggable={false}
+            />
+          );
+        })}
       </section>
 
       {plantings.length === 0 && (
         <div className="absolute inset-0 z-10 flex items-center justify-center pb-24 text-center">
           <div>
-            <img src={cacaoTree} alt="Cacao tree" className="mx-auto w-40 opacity-20" />
+            <img src={cacaoTree} alt="Cacao tree" className="mx-auto w-40 opacity-20" draggable={false} />
             <p className="mt-5 font-display text-2xl italic text-gold/55">The first tree is waiting to be rooted.</p>
           </div>
         </div>
       )}
 
-      <footer className="absolute inset-x-0 bottom-0 z-30 flex min-h-24 items-center justify-between gap-8 border-t border-gold/10 bg-plum-deep/90 px-8 py-4 backdrop-blur-xl md:px-12">
-        <ProjectLogos className="shrink-0" />
-        <div className="flex min-w-0 flex-1 items-center justify-center gap-4 text-center">
-          <span className="font-sans text-[10px] uppercase tracking-[0.28em] text-gold/45">Thank you,</span>
-          <span key={active?.id || "empty"} className="animate-soft-in truncate font-display text-2xl italic text-gold-soft md:text-3xl">
-            {active?.name || "every grower"}
-          </span>
+      {/* Separate projector footer: logos stay left while the live thank-you ticker and count sit together in the bottom center. */}
+      <footer className="absolute inset-x-0 bottom-0 z-30 flex min-h-24 items-center border-t border-gold/10 bg-plum-deep/90 px-6 py-4 backdrop-blur-xl md:px-12">
+        <div className="absolute left-6 bottom-4 md:left-12">
+          <ProjectLogos />
         </div>
-        <div className="hidden shrink-0 text-right sm:block">
-          <p className="font-sans text-[9px] uppercase tracking-[0.25em] text-gold/45">Trees planted</p>
-          <p className="font-display text-2xl text-gold">{plantings.length}</p>
+
+        <div className="mx-auto flex items-center justify-center gap-4 text-center md:gap-8">
+          <div className="min-w-0">
+            <p className="font-sans text-[9px] uppercase tracking-[0.28em] text-gold/45">Thank you,</p>
+            <span key={active?.id || "empty"} className="mt-1 block animate-soft-in truncate font-display text-2xl italic text-gold-soft md:text-3xl">
+              {active?.name || "every grower"}
+            </span>
+          </div>
+          <div className="h-10 w-px bg-gold/15" />
+          <div className="text-left">
+            <p className="font-sans text-[9px] uppercase tracking-[0.25em] text-gold/45">Trees planted</p>
+            <p className="mt-1 font-display text-3xl leading-none text-gold md:text-4xl">{plantings.length}</p>
+          </div>
         </div>
       </footer>
     </main>
