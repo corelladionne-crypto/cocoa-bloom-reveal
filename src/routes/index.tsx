@@ -30,7 +30,7 @@ type Planting = {
 
 const STORE_KEY = "cocoa-rooted-plantings";
 const CHANNEL_NAME = "cocoa-rooted-grove";
-const KRAFT_PAPER = "https://cocoa-bloom-reveal.lovable.app/__l5e/assets-v1/b1cf6cc1-8f9f-4601-a695-0fb9e5b331ef/kraft-paper.png";
+const KRAFT_PAPER = "https://www.frenchpaper.com/products/kraft-cardstock-speckletone-cover?srsltid=AfmBOoo_kwrSaVHKQnPj79wyS5pJ7x-J86TsFLM_RDARSNdMSBNjoSdo";
 const BUTTON =
   "inline-flex min-h-14 items-center justify-center rounded-full bg-gold px-7 py-4 font-sans text-xs font-semibold uppercase tracking-[0.24em] text-plum-deep transition duration-300 hover:scale-[1.02] hover:bg-gold-soft active:scale-95 disabled:opacity-50";
 const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
