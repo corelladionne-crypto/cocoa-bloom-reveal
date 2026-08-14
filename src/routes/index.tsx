@@ -84,10 +84,8 @@ function RootedExperience() {
 
   const ms = useCallback((v: number) => (reduced ? Math.min(v, 120) : v), [reduced]);
 
-  useEffect(() => {
-    const t = setTimeout(() => setDimmed(true), 1000);
-    return () => clearTimeout(t);
-  }, []);
+  // The tear handle only appears once the guest taps the packaging.
+
 
   const completeTear = useCallback(() => {
     draggingRef.current = false;
