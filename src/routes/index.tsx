@@ -188,8 +188,12 @@ function RootedExperience() {
         {/* Screen 1 packaging, ripped apart down the middle */}
         {step === 1 ? (
           <div
-            className="absolute inset-0"
-            style={{ opacity: tearDone ? 0 : 1, transition: `opacity ${ms(600)}ms ${SOFT}` }}
+            className="absolute inset-0 select-none"
+            style={{
+              opacity: tearDone ? 0 : 1,
+              pointerEvents: tearDone ? "none" : undefined,
+              transition: `opacity ${ms(600)}ms ${SOFT}`,
+            }}
           >
             {(["left", "right"] as const).map((side) => (
               <div
@@ -197,29 +201,30 @@ function RootedExperience() {
                 className="absolute inset-0"
                 style={{
                   clipPath: tearHalfPath(side, progress),
-                  transform: `translateX(${(side === "left" ? -1 : 1) * progress * 120}px) rotate(${
-                    (side === "left" ? -1 : 1) * progress * 3
+                  transform: `translateX(${(side === "left" ? -1 : 1) * progress * 150}px) rotate(${
+                    (side === "left" ? -1 : 1) * progress * 4
                   }deg)`,
                   transformOrigin: side === "left" ? "left bottom" : "right bottom",
                   transition: halfTransition,
                 }}
               >
-                <WelcomeScreen
-                  dimmed={dimmed}
-                  progress={progress}
-                  reduced={reduced}
-                  showControls={side === "left"}
-                  trackRef={trackRef}
-                  onHandleDown={(e) => {
-                    draggingRef.current = true;
-                    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-                  }}
-                />
+                <WelcomeScreen dimmed={dimmed} reduced={reduced} />
               </div>
             ))}
             <PaperFibers progress={progress} reduceMotion={reduced} />
+            <TearControls
+              dimmed={dimmed}
+              progress={progress}
+              reduced={reduced}
+              trackRef={trackRef}
+              onHandleDown={(e) => {
+                draggingRef.current = true;
+                (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+              }}
+            />
           </div>
         ) : null}
+
 
         {/* The torn paper crumples into a seed on the way to the Plant screen */}
         {step === 2.5 ? <PaperToSeed reduced={reduced} /> : null}
