@@ -1,11 +1,1 @@
-{
-  "version": 1,
-  "asset_id": "5186e89d-1b3f-449c-ba3e-3a59d988f794",
-  "project_id": "4cfae599-905c-4295-8c34-20ffc7b9ecad",
-  "url": "/__l5e/assets-v1/5186e89d-1b3f-449c-ba3e-3a59d988f794/cacao-bean.png",
-  "r2_key": "a/v1/4cfae599-905c-4295-8c34-20ffc7b9ecad/5186e89d-1b3f-449c-ba3e-3a59d988f794/cacao-bean.png",
-  "original_filename": "cacao-bean.png",
-  "size": 143435,
-  "content_type": "image/png",
-  "created_at": "2026-08-13T17:45:02Z"
-}
+{"version":1,"asset_id":"5186e89d-1b3f-449c-ba3e-3a59d988f794","original_filename":"cacao-bean.png","content_type":"image/svg+xml","url":"/cacao-bean.svg"}
