@@ -145,3 +145,8 @@
 @utility animate-handle-nudge {
   animation: handle-nudge 1.8s var(--ease-soft) infinite;
 }
+
+/* Keep the journey screens stationary. The seed/tree artwork supplies the physical transition. */
+main > div > div:first-child > div:first-child {
+  animation: none !important;
+}
