@@ -444,31 +444,24 @@ function ThankYouScreen({ name }: { name: string }) {
           className="absolute bottom-[-120px] right-[-140px] w-[520px] opacity-15"
         />
 
-        <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
-          <ChangingFuturesMark />
-
-          <p className="mt-12 font-sans text-[11px] uppercase tracking-[0.35em] text-gold/60">
-            THANK YOU
-          </p>
-
-          <h2 className="mt-8 font-display text-6xl italic text-gold-soft">
-            {name}
+        <div className="relative flex h-full animate-soft-in flex-col items-center justify-center px-10 text-center">
+          <h2 className="font-display text-7xl font-bold leading-[0.9] text-gold-soft">
+            Thank
+            <span className="block">you</span>
           </h2>
 
-          <p className="mt-10 max-w-[280px] font-display text-2xl italic leading-relaxed text-gold-soft">
+          {name ? (
+            <p className="mt-8 font-display text-3xl italic text-gold/80">{name}</p>
+          ) : null}
+
+          <p className="mt-8 max-w-[280px] font-display text-2xl italic leading-relaxed text-gold-soft">
             Your cocoa tree is now rooted.
           </p>
 
-          <p className="mt-6 max-w-[300px] font-sans text-sm leading-7 text-foreground/75">
-            Scan the QR code for the demo and continue growing your digital
-            cocoa tree.
+          <p className="mt-8 max-w-[300px] font-sans text-sm leading-7 text-foreground/75">
+            Look to the front of the room to watch your tree join the grove, standing
+            alongside all the others planted tonight.
           </p>
-
-          <div className="mt-12 rounded-full border border-gold/40 px-8 py-4">
-            <p className="font-sans text-xs uppercase tracking-[0.25em] text-gold-soft">
-              Scan the QR code
-            </p>
-          </div>
         </div>
       </div>
     </main>
