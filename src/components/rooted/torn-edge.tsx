@@ -85,28 +85,26 @@ export function PaperFibers({
 /** Horizontal torn kraft strip used along the bottom of the purple screens. */
 import kraftPaper from "@/assets/kraft-paper.png";
 
-export function TornStrip({ className = "" }: { className?: string }) {
-  const steps = 40;
+import kraftPaper from "@/assets/kraft-paper.png";
 
-  const pts = Array.from({ length: steps + 1 }, (_, i) => {
-    const x = (i / steps) * 100;
-
-    const yv =
-      34 +
-      (noise(i, 5) - 0.5) * 22 +
-      (noise(i * 2.3, 13) - 0.5) * 8;
-
-    return `${x.toFixed(2)}% ${yv.toFixed(2)}%`;
-  });
-
+export function TornStrip({
+  className = "",
+}: {
+  className?: string;
+}) {
   return (
     <div
-      className={`pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-kraft ${className}`}
-      style={{
-        clipPath: `polygon(${pts.join(", ")}, 100% 100%, 0% 100%)`,
-      }}
+      className={`pointer-events-none absolute inset-x-0 bottom-0 h-20 overflow-hidden ${className}`}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_60%)]" />
+      <div
+        className="absolute inset-0 paper-assemble"
+        style={{
+          backgroundImage: `url(${kraftPaper})`,
+          backgroundSize: "cover",
+          backgroundPosition: "bottom center",
+          backgroundRepeat: "repeat-x",
+        }}
+      />
     </div>
   );
 }
