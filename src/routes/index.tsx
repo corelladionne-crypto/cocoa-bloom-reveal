@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+
 import cacaoBean from "@/assets/cacao-bean.svg";
 import cacaoBranch from "@/assets/cacao-branch.svg";
+import cacaoTree from "@/assets/cacao-tree-gold.svg";
 import kraftStrip from "@/assets/kraft-strip.svg";
-import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
+
+import {
+  AsuMark,
+  CadburyMark,
+  ChangingFuturesMark,
+} from "@/components/rooted/logos";
 
 export const Route = createFileRoute("/")({ head: () => ({ meta: [{ title: "COCOA / Rooted — A Gifting Reveal" }, { name: "description", content: "A tactile cocoa experience: reveal, sow, plant, and grow." }] }), component: RootedExperience });
 type Step = 1 | 2 | 3 | 4 | 5;
