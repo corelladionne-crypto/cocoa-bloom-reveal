@@ -2,8 +2,8 @@ import cadburyLogo from "@/assets/Cadbury-Logo-3.png";
 import asuLogo from "@/assets/asu logo.png";
 import changingFuturesLogo from "@/assets/ASU_Changing-Futures-Mark_3_RGB_Black-and-Gold_ASU_Vertical-150ppi-1-1.png-2.webp";
 
-const logoWrap = "flex w-full justify-start pl-0";
-const logoImage = "block h-12 w-32 object-contain object-left";
+const logoWrap = "-ml-6 flex w-full justify-start";
+const logoImage = "block h-10 w-28 origin-left scale-[0.82] object-contain object-left";
 
 export function CadburyMark() {
   return (
