@@ -1,6 +1,6 @@
 import asuLogo from "@/assets/asu-logo.png";
 import cadburyLogo from "@/assets/cadbury-logo.svg";
-import cfLogo from "@/assets/changing-futures-logo.png";
+import cfLogo from "@/assets/changing-futures-logo.svg";
 
 function BrandMark({
   src,
