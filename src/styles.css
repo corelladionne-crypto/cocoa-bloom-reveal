@@ -68,8 +68,10 @@
   --input: oklch(0.4 0.05 305.5);
   --ring: var(--gold);
 
-  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bodoni Moda", Bodoni MT, Didot, ui-serif, Georgia, serif;
+  --font-sans:
+    "Neue Haas Grotesk Display Pro", "Archivo", Avenir Next, Avenir,
+    ui-sans-serif, system-ui, sans-serif;
 
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
