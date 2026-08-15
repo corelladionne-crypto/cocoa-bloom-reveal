@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import cacaoBean from "@/assets/cacao-bean.svg";
 import cacaoBranch from "@/assets/cacao-branch.svg";
-import screen from "@/assets/new-ai-screens-17.png";
 import kraftStrip from "@/assets/kraft-strip.svg";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
 
