@@ -1,0 +1,146 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-kraft: var(--kraft);
+  --color-kraft-deep: var(--kraft-deep);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-plum: var(--plum);
+  --color-plum-deep: var(--plum-deep);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  --plum: oklch(0.263 0.072 305.5);
+  --plum-deep: oklch(0.196 0.058 305.5);
+  --gold: oklch(0.826 0.121 88.5);
+  --gold-soft: oklch(0.9 0.07 88.5);
+  --kraft: oklch(0.752 0.062 76);
+  --kraft-deep: oklch(0.66 0.068 70);
+
+  --background: var(--plum);
+  --foreground: oklch(0.97 0.01 90);
+  --card: var(--plum-deep);
+  --card-foreground: oklch(0.97 0.01 90);
+  --popover: var(--plum-deep);
+  --popover-foreground: oklch(0.97 0.01 90);
+  --primary: var(--gold);
+  --primary-foreground: var(--plum-deep);
+  --secondary: oklch(0.33 0.07 305.5);
+  --secondary-foreground: oklch(0.97 0.01 90);
+  --muted: oklch(0.33 0.05 305.5);
+  --muted-foreground: oklch(0.78 0.03 90);
+  --accent: var(--gold);
+  --accent-foreground: var(--plum-deep);
+  --destructive: oklch(0.6 0.2 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.4 0.05 305.5);
+  --input: oklch(0.4 0.05 305.5);
+  --ring: var(--gold);
+
+  --font-display: "Playfair Display", Georgia, ui-serif, serif;
+  --font-sans: "Jost", "Avenir Next", Avenir, ui-sans-serif, system-ui, sans-serif;
+  --font-body: "EB Garamond", Georgia, ui-serif, serif;
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-gold: 0 0 40px color-mix(in oklab, var(--gold) 45%, transparent);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: oklch(0.16 0.03 305.5);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility ease-spring {
+  transition-timing-function: var(--ease-spring);
+}
+
+@utility ease-soft {
+  transition-timing-function: var(--ease-soft);
+}
+
+@utility glow-gold {
+  box-shadow: var(--shadow-gold);
+}
+
+@keyframes grove-rise {
+  from {
+    transform: scaleY(0);
+    opacity: 0.2;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes handle-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+}
+
+@keyframes soft-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-soft-in {
+  animation: soft-in 0.7s var(--ease-spring) both;
+}
+
+@utility animate-handle-nudge {
+  animation: handle-nudge 1.8s var(--ease-soft) infinite;
+}
