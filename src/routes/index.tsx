@@ -105,8 +105,8 @@ function RootedExperience() {
   }, [step]);
 
   if (step === 5) {
-    return <GroveScreen trees={trees} name={name} />;
-  }
+  return <ThankYouScreen name={name} />;
+}
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
@@ -365,43 +365,49 @@ function GrowScreen({
   );
 }
 
-function GroveScreen({ trees, name }: { trees: number; name: string }) {
+function ThankYouScreen({ name }: { name: string }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
-      <div className="relative w-full max-w-5xl animate-soft-in overflow-hidden rounded-3xl bg-plum px-10 py-12 shadow-2xl aspect-[16/9] flex flex-col justify-between">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_120%,rgba(233,194,90,0.18),transparent_60%)]" />
+      <div
+        className="relative overflow-hidden rounded-[2rem] bg-plum shadow-2xl"
+        style={{
+          width: 390,
+          height: 844,
+        }}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(233,194,90,0.12),transparent_70%)]" />
 
-        <div className="relative flex flex-col items-center text-center">
-          <img
-            src={cacaoTree}
-            alt="Small gold cacao tree icon"
-            width={1024}
-            height={1024}
-            loading="lazy"
-            className="w-16 opacity-90"
-          />
-          <h2 className="mt-4 font-display text-5xl font-light tracking-wide text-gold-soft md:text-6xl">
-            A Living Grove
-          </h2>
-          <p className="mt-3 font-display text-lg italic text-gold/70">
-            {name ? `${name} is rooted.` : "Your tree is rooted."}
-          </p>
-          <p className="mt-6 font-sans text-xs uppercase tracking-[0.35em] text-foreground/60">
-            Trees Planted
-          </p>
-          <p className="font-display text-4xl text-gold">{trees}/400</p>
-          <div className="mt-4 h-1 w-64 overflow-hidden rounded-full bg-foreground/15">
-            <div
-              className="h-full rounded-full bg-gold transition-all duration-1000 ease-spring"
-              style={{ width: `${(trees / 400) * 100}%` }}
-            />
-          </div>
-        </div>
+        <img
+          src={cacaoTree}
+          alt=""
+          className="absolute bottom-[-120px] right-[-140px] w-[520px] opacity-15"
+        />
 
-        <div className="relative flex items-center justify-center gap-10 pt-8">
+        <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
           <ChangingFuturesMark />
-          <CadburyMark />
-          <AsuMark />
+
+          <p className="mt-12 font-sans text-[11px] uppercase tracking-[0.35em] text-gold/60">
+            THANK YOU
+          </p>
+
+          <h2 className="mt-8 font-display text-6xl italic text-gold-soft">
+            {name}
+          </h2>
+
+          <p className="mt-10 max-w-[280px] font-display text-2xl italic leading-relaxed text-gold-soft">
+            Your cocoa tree is now rooted.
+          </p>
+
+          <p className="mt-6 max-w-[300px] font-sans text-sm leading-7 text-foreground/75">
+            Scan the QR code for the demo and continue growing your digital
+            cocoa tree.
+          </p>
+
+          <div className="mt-12 rounded-full border border-gold/40 px-8 py-4">
+            <p className="font-sans text-xs uppercase tracking-[0.25em] text-gold-soft">
+              Scan the QR code
+            </p>
+          </div>
         </div>
       </div>
     </main>
