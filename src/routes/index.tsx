@@ -56,10 +56,9 @@ function RootedExperience() {
   if (step === 5) return <ThankYouScreen name={name} />;
 
   return <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
-    <style>{`@keyframes rootedSlideIn { from { transform: translate3d(100%, 0, 0); opacity: .72; } to { transform: translate3d(0, 0, 0); opacity: 1; } }`}</style>
     <div className="relative overflow-hidden rounded-[2rem] shadow-2xl" style={{ width: 390, height: 844 }}>
       <div className="absolute inset-0" style={{ transform: zooming ? "scale(0.25)" : "scale(1)", opacity: zooming ? 0 : 1, transition: `transform 1000ms ${SOFT}, opacity 850ms ${SOFT}` }}>
-        <div key={step} className="absolute inset-0" style={{ animation: step > 1 ? `rootedSlideIn 760ms ${SOFT} both` : undefined }}>
+        <div className="absolute inset-0">
           {step === 1 || step === 2 ? <SowScreen onNext={() => setStep(3)} /> : null}
           {step === 3 ? <PlantScreen growing={growing} onPlant={startGrowth} /> : null}
           {step === 4 ? <GrowScreen name={name} setName={setName} onSubmit={submitName} /> : null}
