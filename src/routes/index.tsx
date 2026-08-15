@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import cocoaPodMockup from "@/assets/cocoa-pod.png";
+import cocoaPodMockup from "@/assets/cocoa-pod.png?v=2";
 import foilLetters from "../../Png for mockup-08.png";
 import landingTexture from "../../AdobeStock_1922231203.jpeg";
 import frontPackage from "../../Front package.png";
-import cocoaSeed from "@/assets/cacao-seed.png";
-import seedGround from "@/assets/seed-ground.png";
-import cocoaTree from "@/assets/cacao-tree.png";
+import cocoaSeed from "@/assets/cacao-seed.png?v=2";
+import seedGround from "@/assets/seed-ground.png?v=2";
+import cocoaTree from "@/assets/cacao-tree.png?v=2";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
 import { TornStrip, tearClipPath } from "@/components/rooted/torn-edge";
 
@@ -130,7 +130,7 @@ function RootedExperience() {
           {step === 3 ? <PlantScreen growing={planting} onPlant={plantSeed} /> : null}
           {step === 4 ? <GrowScreen name={name} setName={setName} rooted={treeGrowing} onSubmit={rootTree} /> : null}
         </div>
-        {step !== 1 && seedPhase !== "hidden" && seedPhase !== "planted" ? <SeedOverlay phase={seedPhase} /> : null}
+        {(step === 2 || step === 3) && seedPhase !== "hidden" && seedPhase !== "planted" ? <SeedOverlay phase={seedPhase} /> : null}
         {(step === 3 || step === 4) && soilPhase !== "hidden" ? <SoilWipe phase={soilPhase} /> : null}
       </div>
     </main>
