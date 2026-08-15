@@ -113,14 +113,24 @@ function RootedExperience() {
     <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
       <div className="relative overflow-hidden rounded-[2rem] shadow-2xl" style={{ width: 390, height: 844 }}>
         <div className="absolute inset-0">
-          {step === 1 ? <WelcomeScreen dimmed={dimmed} progress={progress} trackRef={trackRef} onHandleDown={(e) => { draggingRef.current = true; (e.target as HTMLElement).setPointerCapture?.(e.pointerId); }} /> : null}
+          {step === 1 ? (
+            <div className="absolute inset-0 z-40" style={{
+              clipPath: tearClipPath(progress),
+              opacity: tearDone ? 0 : 1,
+              transition: draggingRef.current ? "none" : `clip-path 650ms ${SPRING}, opacity 650ms ${SOFT}`,
+            }}>
+              <WelcomeScreen dimmed={dimmed} progress={progress} trackRef={trackRef} onHandleDown={(e) => {
+                draggingRef.current = true;
+                (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+              }} />
+            </div>
+          ) : null}
           {step === 2 ? <SowScreen seeding={seedPhase !== "hidden"} onBegin={beginGrowing} /> : null}
           {step === 3 ? <PlantScreen growing={planting} onPlant={plantSeed} /> : null}
           {step === 4 ? <GrowScreen name={name} setName={setName} rooted={treeGrowing} onSubmit={rootTree} /> : null}
         </div>
         {step !== 1 && seedPhase !== "hidden" && seedPhase !== "planted" ? <SeedOverlay phase={seedPhase} /> : null}
         {(step === 3 || step === 4) && soilPhase !== "hidden" ? <SoilWipe phase={soilPhase} /> : null}
-        {step === 1 ? <div className="absolute inset-0 z-40" style={{ clipPath: tearClipPath(progress), opacity: tearDone ? 0 : 1, transition: draggingRef.current ? "none" : `clip-path 650ms ${SPRING}, opacity 650ms ${SOFT}` }} /> : null}
       </div>
     </main>
   );
@@ -209,7 +219,7 @@ function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName
       <ChangingFuturesMark />
       <div className="relative flex flex-1 items-center justify-center overflow-visible">
         <div className="absolute bottom-[15%] left-0 right-0 h-8 overflow-hidden"><div className="h-full bg-[#5a3b24] [clip-path:polygon(0_35%,8%_10%,16%_32%,25%_14%,34%_36%,43%_12%,52%_30%,61%_10%,70%_32%,79%_14%,88%_34%,100%_12%,100%_100%,0_100%)]" /></div>
-        <img src={cocoaTree} alt="Gold line drawing of a full cocoa tree" className="mx-auto w-72 origin-bottom object-contain" style={{ transform: rooted ? "scale(1.12)" : "scale(.64)", opacity: rooted ? 1 : .12, filter: rooted ? "drop-shadow(0 0 30px rgba(233,194,90,.4))" : "none", transition: `transform 1150ms ${SPRING},opacity 950ms ${SOFT},filter 950ms ${SOFT}` }} />
+        <img src={cocoaTree} alt="Gold line drawing of a full cocoa tree" className="mx-auto w-72 origin-bottom object-contain" style={{ transform: rooted ? "scale(1.12)" : "scale(.64)", opacity: rooted ? 1 : 0, filter: rooted ? "drop-shadow(0 0 30px rgba(233,194,90,.4))" : "none", transition: `transform 1150ms ${SPRING},opacity 950ms ${SOFT},filter 950ms ${SOFT}` }} />
       </div>
       <form onSubmit={onSubmit} className="relative z-10">
         <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Grow</h2>
