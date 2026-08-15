@@ -83,7 +83,6 @@ export function PaperFibers({
 }
 
 /** Horizontal torn kraft strip used along the bottom of the purple screens. */
-import kraftPaper from "@/assets/kraft-paper.png";
 
 export function TornStrip({
   className = "",
