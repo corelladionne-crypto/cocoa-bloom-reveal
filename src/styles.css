@@ -181,3 +181,24 @@ img[alt="Changing Futures"] {
   .bg-plum.touch-none > div:nth-last-child(1) { bottom: 3%; }
   .bg-plum.touch-none h1 { font-size: 3.35rem; }
 }
+
+@keyframes paperAssemble {
+  0% {
+    opacity: 0;
+    transform: translateY(80px) scaleY(0.2);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(-8px) scaleY(1.05);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+.animate-paper-assemble {
+  animation: paperAssemble 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
