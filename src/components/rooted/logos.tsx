@@ -1,96 +1,36 @@
-const asuLogo =
-  "https://cocoa-bloom-reveal.lovable.app/__l5e/assets-v1/1bb91014-7712-4554-b14d-7b07d2d3fe12/asu-logo.png";
-
-import cadburyLogo from "@/assets/cadbury-logo.svg";
-import cfLogo from "@/assets/changing-futures-logo.svg";
-
-function BrandMark({
-  src,
-  label,
-  className = "",
-}: {
-  src: string;
-  label: string;
-  className?: string;
-}) {
+export function CadburyMark() {
   return (
-    <div className={`flex items-center justify-center ${className}`}>
-      <img
-        src={src}
-        alt={label}
-        className="max-h-full max-w-full object-contain"
-        draggable={false}
-      />
-    </div>
+    <span className="font-display text-2xl italic tracking-wide text-gold">Cadbury</span>
   );
 }
 
-export function CadburyMark({
-  className = "",
-}: {
-  className?: string;
-}) {
+export function AsuMark() {
   return (
-    <BrandMark
-      src={cadburyLogo}
-      label="Cadbury"
-      className={className}
-    />
+    <span className="flex items-center gap-2">
+      <span className="grid size-7 place-items-center rounded-full border border-gold/70 font-sans text-[10px] font-semibold tracking-widest text-gold">
+        ASU
+      </span>
+      <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/80">
+        Arizona State
+      </span>
+    </span>
   );
 }
 
-export function AsuMark({
-  className = "",
-}: {
-  className?: string;
-}) {
+export function ChangingFuturesMark() {
   return (
-    <BrandMark
-      src={asuLogo}
-      label="Arizona State University"
-      className={className}
-    />
-  );
-}
-
-export function ChangingFuturesMark({
-  className = "",
-}: {
-  className?: string;
-}) {
-  return (
-    <BrandMark
-      src={cfLogo}
-      label="Changing Futures"
-      className={className}
-    />
-  );
-}
-
-export function ProjectLogos({
-  className = "",
-}: {
-  className?: string;
-}) {
-  return (
-    <div className={`flex items-center gap-4 ${className}`}>
-      <BrandMark
-        src={cadburyLogo}
-        label="Cadbury"
-        className="h-10 w-32"
-      />
-
-      <BrandMark
-        src={asuLogo}
-        label="Arizona State University"
-        className="h-10 w-28"
-      />
-
-      <BrandMark
-        src={cfLogo}
-        label="Changing Futures"
-        className="h-10 w-32"
-      />
-    </div>
+    <span className="flex items-center gap-2">
+      <svg viewBox="0 0 24 24" className="size-5 text-gold" fill="none" aria-hidden>
+        <path
+          d="M12 21V9m0 0c0-3 2-5 5-5 0 3-2 5-5 5Zm0 3c0-3-2-5-5-5 0 3 2 5 5 5Z"
+          stroke="currentColor"
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+      </svg>
+      <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold/80">
+        Changing Futures
+      </span>
+    </span>
   );
 }

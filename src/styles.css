@@ -40,12 +40,14 @@
 
 :root {
   --radius: 0.75rem;
+
   --plum: oklch(0.263 0.072 305.5);
   --plum-deep: oklch(0.196 0.058 305.5);
   --gold: oklch(0.826 0.121 88.5);
   --gold-soft: oklch(0.9 0.07 88.5);
   --kraft: oklch(0.752 0.062 76);
   --kraft-deep: oklch(0.66 0.068 70);
+
   --background: var(--plum);
   --foreground: oklch(0.97 0.01 90);
   --card: var(--plum-deep);
@@ -65,140 +67,79 @@
   --border: oklch(0.4 0.05 305.5);
   --input: oklch(0.4 0.05 305.5);
   --ring: var(--gold);
+
   --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
   --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
+
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --shadow-gold: 0 0 40px color-mix(in oklab, var(--gold) 45%, transparent);
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  body { background-color: oklch(0.16 0.03 305.5); color: var(--color-foreground); font-family: var(--font-sans); }
-}
+  * {
+    border-color: var(--color-border);
+  }
 
-/* Participant UI is always an iPhone-sized canvas on larger screens. */
-@media (min-width: 431px) {
-  main > div > div {
-    width: 430px;
-    max-width: 430px;
-    margin-inline: auto;
+  body {
+    background-color: oklch(0.16 0.03 305.5);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
   }
 }
 
-@utility font-display { font-family: var(--font-display); }
-@utility ease-spring { transition-timing-function: var(--ease-spring); }
-@utility ease-soft { transition-timing-function: var(--ease-soft); }
-@utility glow-gold { box-shadow: var(--shadow-gold); }
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility ease-spring {
+  transition-timing-function: var(--ease-spring);
+}
+
+@utility ease-soft {
+  transition-timing-function: var(--ease-soft);
+}
+
+@utility glow-gold {
+  box-shadow: var(--shadow-gold);
+}
+
+@keyframes grove-rise {
+  from {
+    transform: scaleY(0);
+    opacity: 0.2;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes handle-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+}
 
 @keyframes soft-in {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@utility animate-soft-in { animation: soft-in 0.7s var(--ease-spring) both; }
-
-/* ---- Cocoa phone experience corrections ---- */
-/* Keep the landing copy above the gesture control so the slider never sits on top of text. */
-.bg-plum.touch-none > div:nth-last-child(1) {
-  bottom: 5.5%;
-}
-.bg-plum.touch-none > div:nth-last-child(1) > p {
-  max-width: 280px;
-  margin-inline: auto;
-  line-height: 1.45;
-}
-
-/* The landing package remains visually compact on short iPhones. */
-.bg-plum.touch-none img[alt="Cocoa pod illustration"] {
-  width: 64%;
-  max-height: 31vh;
-  object-fit: contain;
-}
-.bg-plum.touch-none h1 {
-  font-size: clamp(3.4rem, 16vw, 4.8rem);
-  line-height: .9;
-}
-.bg-plum.touch-none p.font-display {
-  line-height: 1.1;
-}
-
-/* The kraft layer on SOW sits over the purple field and exposes its torn edge. */
-section.bg-plum:not(.touch-none) > div.absolute.bottom-0 > div {
-  background: transparent !important;
-  box-shadow: none !important;
-  height: 58vh !important;
-}
-section.bg-plum:not(.touch-none) > div.absolute.bottom-0 > div::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 0 0;
-  background: linear-gradient(180deg, rgba(201,158,104,.96), rgba(201,158,104,.96));
-  z-index: -1;
-}
-
-/* Planting should read as seed -> organic tear -> tree, never as a rectangular block of soil. */
-section.bg-plum:not(.touch-none) img[alt="Torn soil edge"] {
-  top: auto !important;
-  bottom: 0 !important;
-  height: 18vh !important;
-  object-fit: cover;
-  object-position: center top;
-}
-section.bg-plum:not(.touch-none) img[alt="Torn soil edge"] + div {
-  display: none !important;
-}
-
-/* The seed falls through the organic edge and the tree rises from the same point. */
-section:has(img[alt="Torn soil edge"]):has(button[disabled]) img[alt="Cacao seed"] {
-  animation: seed-plant 900ms var(--ease-soft) forwards !important;
-}
-section:has(img[alt="Torn soil edge"]):has(button[disabled]) img[alt="Cacao tree illustration"] {
-  animation: tree-rise 1250ms var(--ease-spring) 620ms forwards !important;
-}
-
-@keyframes seed-plant {
-  0% { transform: translateY(-18px) rotate(0deg) scale(1); opacity: 1; }
-  62% { transform: translateY(115px) rotate(8deg) scale(.82); opacity: 1; }
-  100% { transform: translateY(155px) rotate(12deg) scale(.45); opacity: 0; }
-}
-@keyframes tree-rise {
-  0% { transform: translateY(24px) scale(.03); opacity: 0; }
-  70% { transform: translateY(0) scale(1.03); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
-}
-
-/* Keep all partner logos in their supplied, full-colour artwork; no logo gets a special monochrome treatment. */
-img[alt="Cadbury"],
-img[alt="Arizona State University"],
-img[alt="Changing Futures"] {
-  filter: none !important;
-  opacity: 1 !important;
-}
-
-/* Slightly tighter type on very short iPhones. */
-@media (max-height: 720px) and (max-width: 430px) {
-  .bg-plum.touch-none img[alt="Cocoa pod illustration"] { max-height: 26vh; }
-  .bg-plum.touch-none > div:nth-last-child(1) { bottom: 3%; }
-  .bg-plum.touch-none h1 { font-size: 3.35rem; }
-}
-
-@keyframes paperAssemble {
-  0% {
+  from {
     opacity: 0;
-    transform: translateY(80px) scaleY(0.2);
+    transform: translateY(14px);
   }
-
-  60% {
+  to {
     opacity: 1;
-    transform: translateY(-8px) scaleY(1.05);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0) scaleY(1);
+    transform: translateY(0);
   }
 }
 
-.animate-paper-assemble {
-  animation: paperAssemble 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+@utility animate-soft-in {
+  animation: soft-in 0.7s var(--ease-spring) both;
+}
+
+@utility animate-handle-nudge {
+  animation: handle-nudge 1.8s var(--ease-soft) infinite;
 }
