@@ -1,4 +1,6 @@
-import asuLogo from "@/assets/asu-logo.png";
+const asuLogo =
+  "https://cocoa-bloom-reveal.lovable.app/__l5e/assets-v1/1bb91014-7712-4554-b14d-7b07d2d3fe12/asu-logo.png";
+
 import cadburyLogo from "@/assets/cadbury-logo.svg";
 import cfLogo from "@/assets/changing-futures-logo.svg";
 
@@ -81,13 +83,13 @@ export function ProjectLogos({
       <BrandMark
         src={asuLogo}
         label="Arizona State University"
-        className="h-10 w-32"
+        className="h-10 w-28"
       />
 
       <BrandMark
         src={cfLogo}
         label="Changing Futures"
-        className="h-12 w-40"
+        className="h-10 w-32"
       />
     </div>
   );
