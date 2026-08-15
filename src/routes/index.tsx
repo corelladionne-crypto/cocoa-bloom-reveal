@@ -168,7 +168,7 @@ function SowScreen({ seeding, onBegin }: { seeding: boolean; onBegin: () => void
       <div className="animate-soft-in" style={{ animationDelay: "120ms" }}>
         <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Sow</h2>
         <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>Cadbury</span>
-        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>Every bean inside this bar comes through Cocoa Life — a programme working alongside farming communities in Ghana and Côte d’Ivoire to grow cocoa that restores soil, shade and income rather than stripping them away.</p>
+        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>Every bean inside this bar comes through Cocoa Life — a program working alongside farming communities in Ghana and Côte d’Ivoire to grow cocoa that restores soil, shade and income rather than stripping them away.</p>
         <button type="button" onClick={onBegin} disabled={seeding} className="mt-8 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95 disabled:opacity-70" style={{ fontFamily: HAAS }}>{seeding ? "Planting…" : "Begin growing"}</button>
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[24%]" style={{ transform: seeding ? "translateY(28%) scaleX(.12)" : "translateY(0) scaleX(1)", opacity: seeding ? .7 : 1, transformOrigin: "50% 100%", transition: `transform 820ms ${SOFT}, opacity 620ms ${SOFT}` }}><TornStrip /></div>
@@ -243,7 +243,7 @@ function ThankYouScreen({ name }: { name: string }) {
           <h2 className="text-7xl font-bold leading-[.9] text-gold-soft" style={{ fontFamily: BODONI }}>Thank<span className="block">you</span></h2>
           {name ? <p className="mt-8 text-3xl italic text-gold/80" style={{ fontFamily: BODONI }}>{name}</p> : null}
           <p className="mt-8 max-w-[280px] text-2xl italic leading-relaxed text-gold-soft" style={{ fontFamily: BODONI }}>Your cocoa tree is now rooted.</p>
-          <p className="mt-8 max-w-[300px] text-[15px] italic leading-7 text-foreground/80" style={{ fontFamily: GARAMOND }}>Look toward the front of the room to see everyone’s trees growing together in the grove — something to grow, long after the gift is opened.</p>
+          <p className="mt-8 max-w-[320px] text-[15px] italic leading-7 text-foreground/80" style={{ fontFamily: GARAMOND }}>Look toward the front of the room to see everyone’s trees growing together in the grove — something to grow, long after the <span className="whitespace-nowrap">gift is opened.</span></p>
         </div>
       </div>
     </main>
