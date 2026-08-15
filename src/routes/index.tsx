@@ -238,16 +238,25 @@ function WelcomeScreen({
 }
 
 function SowScreen({ onNext }: { onNext: () => void }) {
+  const [seeding, setSeeding] = useState(false);
+
+  const begin = () => {
+    setSeeding(true);
+    setTimeout(onNext, 1100);
+  };
+
   return (
-    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-24 pt-16">
+    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-28 pt-16">
       <div className="animate-soft-in">
         <CadburyMark />
       </div>
 
       <div className="animate-soft-in" style={{ animationDelay: "120ms" }}>
-        <h2 className="font-display text-5xl font-light leading-tight text-gold-soft">
+        <h2 className="font-display text-6xl font-bold leading-none text-gold-soft">
           Sow
-          <span className="block font-display text-xl italic text-gold/70">Cadbury</span>
+          <span className="mt-2 block font-display text-xl font-normal italic text-gold/70">
+            Cadbury
+          </span>
         </h2>
         <p className="mt-5 max-w-[19rem] font-sans text-sm leading-relaxed text-foreground/75">
           Every bean inside this bar comes through Cocoa Life — a programme working
@@ -256,14 +265,40 @@ function SowScreen({ onNext }: { onNext: () => void }) {
         </p>
         <button
           type="button"
-          onClick={onNext}
-          className="mt-8 w-full rounded-full bg-gold px-6 py-4 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95"
+          onClick={begin}
+          disabled={seeding}
+          className="mt-8 w-full rounded-full bg-gold px-6 py-4 font-sans text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95 disabled:opacity-70"
         >
-          Start growing
+          {seeding ? "Growing…" : "Begin growing"}
         </button>
       </div>
 
-      <TornStrip />
+      {/* Kraft paper bottom gathers itself into a single gold seed */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[24%]"
+        style={{
+          transform: seeding ? "translateY(30%) scaleX(0.08)" : "translateY(0) scaleX(1)",
+          opacity: seeding ? 0 : 1,
+          transformOrigin: "50% 100%",
+          transition: `transform 900ms ${SOFT}, opacity 900ms ${SOFT}`,
+        }}
+      >
+        <TornStrip />
+      </div>
+
+      <img
+        src={cacaoSeed}
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute bottom-16 left-1/2 w-40 -translate-x-1/2"
+        style={{
+          transform: seeding
+            ? "translate(-50%, 0) scale(1)"
+            : "translate(-50%, 90px) scale(0.15)",
+          opacity: seeding ? 1 : 0,
+          transition: `transform 1000ms ${SPRING}, opacity 700ms ${SOFT}`,
+        }}
+      />
     </section>
   );
 }
@@ -276,16 +311,6 @@ function PlantScreen({ growing, onPlant }: { growing: boolean; onPlant: () => vo
       </div>
 
       <div className="relative flex flex-1 flex-col items-center justify-center">
-        <div
-          className="absolute bottom-1/2 w-[3px] origin-bottom rounded-full bg-gradient-to-t from-gold via-gold-soft to-transparent"
-          style={{
-            height: 260,
-            transform: growing ? "scaleY(1)" : "scaleY(0)",
-            opacity: growing ? 1 : 0,
-            filter: "drop-shadow(0 0 14px rgba(233,194,90,0.8))",
-            transition: `transform 1200ms ${SOFT}, opacity 600ms ${SOFT}`,
-          }}
-        />
         <img
           src={cacaoSeed}
           alt="Gold line drawing of a cacao seed pod"
@@ -293,23 +318,45 @@ function PlantScreen({ growing, onPlant }: { growing: boolean; onPlant: () => vo
           height={1024}
           loading="lazy"
           className="relative w-48"
+          style={{
+            transform: growing
+              ? "translateY(180px) scale(0.45)"
+              : "translateY(0) scale(1)",
+            opacity: growing ? 0 : 1,
+            filter: "drop-shadow(0 0 18px rgba(233,194,90,0.35))",
+            transition: `transform 1100ms ${SOFT}, opacity 900ms ${SOFT}`,
+          }}
+        />
+        {/* soil line the seed sinks into */}
+        <div
+          className="absolute bottom-4 h-[2px] w-2/3 rounded-full bg-gold/50"
+          style={{
+            transform: growing ? "scaleX(1)" : "scaleX(0.6)",
+            opacity: growing ? 1 : 0.4,
+            transition: `transform 900ms ${SPRING}, opacity 900ms ${SOFT}`,
+          }}
         />
       </div>
 
       <div>
-        <h2 className="font-display text-5xl font-light leading-tight text-gold-soft">
+        <h2 className="font-display text-6xl font-bold leading-none text-gold-soft">
           Plant
-          <span className="block font-display text-xl italic text-gold/70">
+          <span className="mt-2 block font-display text-xl font-normal italic text-gold/70">
             Arizona State University
           </span>
         </h2>
+        <p className="mt-5 max-w-[19rem] font-sans text-sm leading-relaxed text-foreground/75">
+          ASU's Tribal Nations Policy Institute and Center for Tribal Digital Sovereignty
+          plant knowledge alongside the seed — pairing Indigenous stewardship with digital
+          tools so communities own the data behind the land they care for.
+        </p>
         <button
           type="button"
           onClick={onPlant}
           disabled={growing}
-          className="mt-7 w-full rounded-full bg-gold px-6 py-4 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95 disabled:opacity-70"
+          className="mt-7 w-full rounded-full bg-gold px-6 py-4 font-sans text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95 disabled:opacity-70"
         >
-          {growing ? "Growing…" : "Plant my seed"}
+          {growing ? "Planting…" : "Plant my seed"}
         </button>
       </div>
     </section>
@@ -325,6 +372,14 @@ function GrowScreen({
   setName: (v: string) => void;
   onSubmit: (e: React.FormEvent) => void;
 }) {
+  const [rooted, setRooted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRooted(true);
+    setTimeout(() => onSubmit(e), 900);
+  };
+
   return (
     <section className="relative flex h-full w-full animate-soft-in flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
       <ChangingFuturesMark />
@@ -335,28 +390,34 @@ function GrowScreen({
         width={1024}
         height={1024}
         loading="lazy"
-        className="mx-auto w-72"
+        className="mx-auto w-72 origin-bottom"
+        style={{
+          transform: rooted ? "scale(1.18)" : "scale(0.86)",
+          opacity: rooted ? 1 : 0.85,
+          filter: rooted ? "drop-shadow(0 0 30px rgba(233,194,90,0.4))" : "none",
+          transition: `transform 900ms ${SPRING}, opacity 900ms ${SOFT}, filter 900ms ${SOFT}`,
+        }}
       />
 
-      <form onSubmit={onSubmit}>
-        <h2 className="font-display text-5xl font-light leading-tight text-gold-soft">
+      <form onSubmit={handleSubmit}>
+        <h2 className="font-display text-6xl font-bold leading-none text-gold-soft">
           Grow
-          <span className="block font-display text-xl italic text-gold/70">
+          <span className="mt-2 block font-display text-xl font-normal italic text-gold/70">
             Changing Futures
           </span>
         </h2>
-        <label className="mt-6 block font-sans text-[11px] uppercase tracking-[0.3em] text-foreground/60">
+        <label className="mt-6 block font-sans text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60">
           Name
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name your tree"
-            className="mt-2 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 font-sans text-base normal-case tracking-normal text-foreground outline-none transition-colors focus:border-gold"
+            className="mt-2 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 font-sans text-base font-normal normal-case tracking-normal text-foreground outline-none transition-colors focus:border-gold"
           />
         </label>
         <button
           type="submit"
-          className="mt-6 w-full rounded-full bg-gold px-6 py-4 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95"
+          className="mt-6 w-full rounded-full bg-gold px-6 py-4 font-sans text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95"
         >
           Root my tree
         </button>
