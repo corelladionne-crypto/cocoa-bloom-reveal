@@ -56,11 +56,14 @@ function RootedExperience() {
   if (step === 5) return <ThankYouScreen name={name} />;
 
   return <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
+    <style>{`@keyframes rootedSlideIn { from { transform: translate3d(100%, 0, 0); opacity: .72; } to { transform: translate3d(0, 0, 0); opacity: 1; } }`}</style>
     <div className="relative overflow-hidden rounded-[2rem] shadow-2xl" style={{ width: 390, height: 844 }}>
-      <div className="absolute inset-0 transition-transform duration-1000" style={{ transform: zooming ? "scale(0.25)" : "scale(1)", opacity: zooming ? 0 : 1, transitionTimingFunction: SOFT, transitionProperty: "transform, opacity" }}>
-        {step === 1 || step === 2 ? <SowScreen onNext={() => setStep(3)} /> : null}
-        {step === 3 ? <PlantScreen growing={growing} onPlant={startGrowth} /> : null}
-        {step === 4 ? <GrowScreen name={name} setName={setName} onSubmit={submitName} /> : null}
+      <div className="absolute inset-0" style={{ transform: zooming ? "scale(0.25)" : "scale(1)", opacity: zooming ? 0 : 1, transition: `transform 1000ms ${SOFT}, opacity 850ms ${SOFT}` }}>
+        <div key={step} className="absolute inset-0" style={{ animation: step > 1 ? `rootedSlideIn 760ms ${SOFT} both` : undefined }}>
+          {step === 1 || step === 2 ? <SowScreen onNext={() => setStep(3)} /> : null}
+          {step === 3 ? <PlantScreen growing={growing} onPlant={startGrowth} /> : null}
+          {step === 4 ? <GrowScreen name={name} setName={setName} onSubmit={submitName} /> : null}
+        </div>
       </div>
       {step === 1 ? <div className="absolute inset-0" style={{ clipPath: tearClipPath(progress), opacity: tearDone ? 0 : 1, transition: draggingRef.current ? "none" : `clip-path 600ms ${SPRING}, opacity 600ms ${SOFT}` }}>
         <WelcomeScreen dimmed={dimmed} progress={progress} trackRef={trackRef} onHandleDown={(e) => { draggingRef.current = true; (e.target as HTMLElement).setPointerCapture?.(e.pointerId); }} />
@@ -111,8 +114,8 @@ function SowScreen({ onNext }: { onNext: () => void }) {
 function PlantScreen({ growing, onPlant }: { growing: boolean; onPlant: () => void }) {
   return <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
     <div className="animate-soft-in"><AsuMark /></div>
-    <div className="relative flex flex-1 flex-col items-center justify-center">
-      <div className="relative flex items-center justify-center" style={{ transform: growing ? "translateY(180px) scale(0.42)" : "translateY(0) scale(1)", opacity: growing ? 0 : 1, transition: `transform 1100ms ${SOFT}, opacity 900ms ${SOFT}` }}><img src={cacaoSeed} alt="Gold line drawing of a cacao seed" width={1024} height={1024} loading="lazy" className="w-48" style={{ filter: "drop-shadow(0 0 18px rgba(233,194,90,0.35))" }} /></div>
+    <div className="relative flex flex-1 flex-col items-center justify-center overflow-visible">
+      <div className="relative flex items-center justify-center overflow-visible" style={{ transform: growing ? "translateY(180px) scale(0.42)" : "translateY(0) scale(1)", opacity: growing ? 0 : 1, transition: `transform 1100ms ${SOFT}, opacity 900ms ${SOFT}` }}><img src={cacaoSeed} alt="Gold line drawing of a cacao seed" width={1024} height={1024} loading="lazy" className="w-48 object-contain" style={{ filter: "drop-shadow(0 0 18px rgba(233,194,90,0.35))" }} /></div>
       <div className="absolute bottom-4 h-[2px] w-2/3 rounded-full bg-gold/50" style={{ transform: growing ? "scaleX(1)" : "scaleX(0.6)", opacity: growing ? 1 : 0.4, transition: `transform 900ms ${SPRING}, opacity 900ms ${SOFT}` }} />
     </div>
     <div>
@@ -129,7 +132,7 @@ function GrowScreen({ name, setName, onSubmit }: { name: string; setName: (v: st
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); setRooted(true); setTimeout(() => onSubmit(e), 900); };
   return <section className="relative flex h-full w-full animate-soft-in flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
     <ChangingFuturesMark />
-    <div className="flex flex-1 items-center justify-center overflow-hidden"><img src={cacaoTree} alt="Gold line drawing of a full cacao tree" width={1024} height={1024} loading="lazy" className="mx-auto w-72 origin-bottom" style={{ transform: rooted ? "scale(1.18)" : "scale(0.86)", opacity: rooted ? 1 : 0.85, filter: rooted ? "drop-shadow(0 0 30px rgba(233,194,90,0.4))" : "none", transition: `transform 900ms ${SPRING}, opacity 900ms ${SOFT}, filter 900ms ${SOFT}` }} /></div>
+    <div className="flex flex-1 items-center justify-center overflow-visible"><img src={cacaoTree} alt="Gold line drawing of a full cacao tree" width={1024} height={1024} loading="lazy" className="mx-auto w-72 object-contain origin-bottom" style={{ transform: rooted ? "scale(1.18)" : "scale(0.86)", opacity: rooted ? 1 : 0.85, filter: rooted ? "drop-shadow(0 0 30px rgba(233,194,90,0.4))" : "none", transition: `transform 900ms ${SPRING}, opacity 900ms ${SOFT}, filter 900ms ${SOFT}` }} /></div>
     <form onSubmit={handleSubmit}>
       <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Grow</h2>
       <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>Changing Futures</span>
@@ -146,7 +149,7 @@ function ThankYouScreen({ name }: { name: string }) {
   return <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
     <div className="relative overflow-hidden rounded-[2rem] bg-plum shadow-2xl" style={{ width: 390, height: 844 }}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(233,194,90,0.12),transparent_70%)]" />
-      <img src={cacaoTree} alt="" className="absolute bottom-[-120px] right-[-140px] w-[520px] opacity-15" />
+      <img src={cacaoTree} alt="" className="absolute bottom-[-120px] right-[-140px] w-[520px] opacity-15 object-contain" />
       <div className="relative flex h-full animate-soft-in flex-col items-center justify-center px-10 text-center">
         <h2 className="text-7xl font-bold leading-[0.9] text-gold-soft" style={{ fontFamily: BODONI }}>Thank<span className="block">you</span></h2>
         {name ? <p className="mt-8 text-3xl italic text-gold/80" style={{ fontFamily: BODONI }}>{name}</p> : null}
