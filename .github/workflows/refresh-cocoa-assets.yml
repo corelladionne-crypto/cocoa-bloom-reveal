@@ -1,0 +1,35 @@
+name: Refresh cocoa assets
+
+on:
+  push:
+    paths:
+      - '.github/workflows/refresh-cocoa-assets.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update asset URLs and remove planting ghost
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/routes/index.tsx')
+          s = p.read_text()
+          s = s.replace('import cocoaPodMockup from "@/assets/cocoa-pod.png";', 'import cocoaPodMockup from "@/assets/cocoa-pod.png?v=2";')
+          s = s.replace('import cocoaSeed from "@/assets/cacao-seed.png";', 'import cocoaSeed from "@/assets/cacao-seed.png?v=2";')
+          s = s.replace('import cocoaTree from "@/assets/cacao-tree.png";', 'import cocoaTree from "@/assets/cacao-tree.png?v=2";')
+          s = s.replace('import seedGround from "@/assets/seed-ground.png";', 'import seedGround from "@/assets/seed-ground.png?v=2";')
+          s = s.replace('{step !== 1 && seedPhase !== "hidden" && seedPhase !== "planted" ? <SeedOverlay phase={seedPhase} /> : null}', '{(step === 2 || step === 3) && seedPhase !== "hidden" && seedPhase !== "planted" ? <SeedOverlay phase={seedPhase} /> : null}')
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/routes/index.tsx
+          git diff --cached --quiet || git commit -m "Refresh cocoa assets and remove planting ghost"
+          git push
