@@ -1,28 +1,23 @@
-import asuAsset from "@/assets/asu-tribal-nations.png.asset.json";
-import changingFuturesAsset from "@/assets/changing-futures.webp.asset.json";
-
-const logoFilter = "brightness(0) saturate(100%) invert(83%) sepia(34%) saturate(633%) hue-rotate(5deg) brightness(101%) contrast(89%)";
+import cadburyLogo from "@/assets/Cadbury-Logo-3.png";
+import asuLogo from "@/assets/asu logo.png";
+import changingFuturesLogo from "@/assets/ASU_Changing-Futures-Mark_3_RGB_Black-and-Gold_ASU_Vertical-150ppi-1-1.png-2.webp";
 
 export function CadburyMark() {
   return (
-    <div className="relative inline-flex items-center" aria-label="Cadbury">
-      <span
-        className="font-serif text-[2.35rem] font-bold italic leading-none tracking-[-0.06em] text-gold"
-        style={{ fontFamily: '"Bodoni 72", "Bodoni MT", Didot, serif' }}
-      >
-        Cadbury
-      </span>
-    </div>
+    <img
+      src={cadburyLogo}
+      alt="Cadbury"
+      className="h-auto w-[10rem] max-w-full object-contain"
+    />
   );
 }
 
 export function AsuMark() {
   return (
     <img
-      src={asuAsset.url}
-      alt="ASU Tribal Nations Policy Institute, Center for Tribal Digital Sovereignty"
-      className="h-[5.5rem] w-auto max-w-[18rem] object-contain object-left"
-      style={{ filter: logoFilter }}
+      src={asuLogo}
+      alt="ASU Tribal Nations Policy Institute and Center for Tribal Digital Sovereignty"
+      className="h-auto w-[17rem] max-w-full object-contain object-left"
       loading="lazy"
     />
   );
@@ -31,9 +26,9 @@ export function AsuMark() {
 export function ChangingFuturesMark() {
   return (
     <img
-      src={changingFuturesAsset.url}
+      src={changingFuturesLogo}
       alt="Changing Futures — From Arizona. For the world."
-      className="h-[4.75rem] w-auto max-w-[18rem] object-contain object-left"
+      className="h-auto w-[16rem] max-w-full object-contain object-left"
       loading="lazy"
     />
   );
