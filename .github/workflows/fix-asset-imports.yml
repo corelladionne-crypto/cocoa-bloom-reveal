@@ -1,0 +1,45 @@
+name: Fix cocoa asset imports
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-asset-imports.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove duplicate asset imports
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/routes/index.tsx')
+          s = p.read_text()
+          lines = s.splitlines(True)
+          seen = set()
+          out = []
+          for line in lines:
+              if line.startswith('import ') and line.strip() in {
+                  'import cocoaPodMockup from "@/assets/cocoa-pod.png";',
+                  'import cocoaSeed from "@/assets/cacao-seed.png";',
+                  'import cocoaTree from "@/assets/cacao-tree.png";',
+                  'import seedGround from "@/assets/seed-ground.png";',
+              }:
+                  key = line.strip()
+                  if key in seen:
+                      continue
+                  seen.add(key)
+              out.append(line)
+          p.write_text(''.join(out))
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/routes/index.tsx
+          git diff --cached --quiet || git commit -m "Fix duplicate cocoa asset imports"
+          git push
