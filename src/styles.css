@@ -158,3 +158,5 @@ div[class*="h-[2px]"][class*="w-2/3"] {
   border-radius: 999px;
   box-shadow: 0 0 8px color-mix(in oklab, var(--gold) 18%, transparent);
 }
+
+/* Trigger a fresh Git-integrated deployment without changing the visual system. */
