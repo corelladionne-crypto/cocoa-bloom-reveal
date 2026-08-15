@@ -40,14 +40,12 @@
 
 :root {
   --radius: 0.75rem;
-
   --plum: oklch(0.263 0.072 305.5);
   --plum-deep: oklch(0.196 0.058 305.5);
   --gold: oklch(0.826 0.121 88.5);
   --gold-soft: oklch(0.9 0.07 88.5);
   --kraft: oklch(0.752 0.062 76);
   --kraft-deep: oklch(0.66 0.068 70);
-
   --background: var(--plum);
   --foreground: oklch(0.97 0.01 90);
   --card: var(--plum-deep);
@@ -67,22 +65,15 @@
   --border: oklch(0.4 0.05 305.5);
   --input: oklch(0.4 0.05 305.5);
   --ring: var(--gold);
-
   --font-display: "Bodoni Moda", Bodoni MT, Didot, ui-serif, Georgia, serif;
-  --font-sans:
-    "Neue Haas Grotesk Display Pro", "Archivo", Avenir Next, Avenir,
-    ui-sans-serif, system-ui, sans-serif;
-
+  --font-sans: "Neue Haas Grotesk Display Pro", "Archivo", Avenir Next, Avenir, ui-sans-serif, system-ui, sans-serif;
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --shadow-gold: 0 0 40px color-mix(in oklab, var(--gold) 45%, transparent);
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
-
+  * { border-color: var(--color-border); }
   body {
     background-color: oklch(0.16 0.03 305.5);
     color: var(--color-foreground);
@@ -90,73 +81,39 @@
   }
 }
 
-@utility font-display {
-  font-family: var(--font-display);
-}
-
-@utility ease-spring {
-  transition-timing-function: var(--ease-spring);
-}
-
-@utility ease-soft {
-  transition-timing-function: var(--ease-soft);
-}
-
-@utility glow-gold {
-  box-shadow: var(--shadow-gold);
-}
+@utility font-display { font-family: var(--font-display); }
+@utility ease-spring { transition-timing-function: var(--ease-spring); }
+@utility ease-soft { transition-timing-function: var(--ease-soft); }
+@utility glow-gold { box-shadow: var(--shadow-gold); }
 
 @keyframes grove-rise {
-  from {
-    transform: scaleY(0);
-    opacity: 0.2;
-  }
-  to {
-    transform: scaleY(1);
-    opacity: 1;
-  }
+  from { transform: scaleY(0); opacity: 0.2; }
+  to { transform: scaleY(1); opacity: 1; }
 }
 
 @keyframes handle-nudge {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(8px);
-  }
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
 }
 
 @keyframes soft-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@utility animate-soft-in {
-  animation: soft-in 0.7s var(--ease-spring) both;
-}
-
-@utility animate-handle-nudge {
-  animation: handle-nudge 1.8s var(--ease-soft) infinite;
-}
+@utility animate-soft-in { animation: soft-in 0.7s var(--ease-spring) both; }
+@utility animate-handle-nudge { animation: handle-nudge 1.8s var(--ease-soft) infinite; }
 
 /* Keep the journey screens stationary. The seed/tree artwork supplies the physical transition. */
-main > div > div:first-child > div:first-child {
-  animation: none !important;
-}
+main > div > div:first-child > div:first-child { animation: none !important; }
 
-/* The planting ground should read like one of the illustrated gold strokes, not a hairline. */
+/* Remove the decorative hanging tree from the Thank You screen. */
+main > div.relative.overflow-hidden.rounded-\[2rem\] > img.absolute[alt=""] { display: none !important; }
+
+/* Keep any legacy planting guide stroke visually heavier than a hairline. */
 div[class*="h-[2px]"][class*="w-2/3"] {
   height: 4px !important;
   opacity: 0.68 !important;
   border-radius: 999px;
   box-shadow: 0 0 8px color-mix(in oklab, var(--gold) 18%, transparent);
 }
-
-/* Trigger a fresh Git-integrated deployment without changing the visual system. */
