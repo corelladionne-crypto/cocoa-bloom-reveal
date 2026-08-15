@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import cocoaPodMockup from "../../Png for mockup-07.png";
+import cocoaPodMockup from "@/assets/cocoa-pod.png";
 import foilLetters from "../../Png for mockup-08.png";
 import landingTexture from "../../AdobeStock_1922231203.jpeg";
 import frontPackage from "../../Front package.png";
 import cocoaSeed from "@/assets/cacao-seed.png";
+import cocoaPodMockup from "@/assets/cocoa-pod.png";
+import seedGround from "@/assets/seed-ground.png";
+import cocoaSeed from "@/assets/cacao-seed.png";
+import cocoaTree from "@/assets/cacao-tree.png";
 import cocoaTree from "@/assets/cacao-tree.png";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
 import { TornStrip, tearClipPath } from "@/components/rooted/torn-edge";
@@ -205,12 +209,27 @@ function PlantScreen({ growing, onPlant }: { growing: boolean; onPlant: () => vo
 }
 
 function SoilWipe({ phase }: { phase: SoilPhase }) {
-  const transform = phase === "rising" ? "translateY(0)" : "translateY(70%)";
-  return <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[60] h-[34%] overflow-hidden" style={{ transform, transition: `transform 1050ms ${SOFT}` }}>
-    <div className="absolute inset-0" style={{ clipPath: "polygon(0% 16%,4% 10%,9% 18%,14% 8%,20% 19%,26% 11%,32% 20%,38% 9%,44% 17%,50% 7%,56% 18%,62% 10%,68% 20%,74% 8%,80% 17%,87% 9%,94% 19%,100% 12%,100% 100%,0% 100%)", background: "linear-gradient(180deg,#8f6942 0%,#6e4b2f 28%,#573a24 68%,#3e291b 100%)" }} />
-    <div className="absolute inset-x-0 top-[9%] bottom-0" style={{ clipPath: "polygon(0% 8%,5% 18%,12% 12%,19% 20%,27% 10%,35% 19%,43% 11%,51% 17%,59% 8%,67% 18%,75% 10%,83% 19%,91% 9%,100% 16%,100% 100%,0% 100%)", background: "linear-gradient(180deg,#aa7b48 0%,#754d2e 38%,#4d321f 100%)", opacity: .9 }} />
-    <div className="absolute inset-x-0 top-[17%] bottom-0" style={{ clipPath: "polygon(0% 14%,6% 8%,14% 17%,22% 9%,30% 19%,38% 10%,46% 18%,54% 8%,62% 16%,70% 10%,78% 19%,86% 9%,94% 17%,100% 11%,100% 100%,0% 100%)", background: "linear-gradient(180deg,#be8c55 0%,#855a35 44%,#54361f 100%)", opacity: .72 }} />
-  </div>;
+  const transform =
+    phase === "rising"
+      ? "translateY(0)"
+      : "translateY(70%)";
+
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-[60] h-[34%] overflow-hidden"
+      style={{
+        transform,
+        transition: `transform 1050ms ${SOFT}`,
+      }}
+    >
+      <img
+        src={seedGround}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-top"
+      />
+    </div>
+  );
 }
 
 function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName: (v: string) => void; rooted: boolean; onSubmit: (e: React.FormEvent) => void }) {
