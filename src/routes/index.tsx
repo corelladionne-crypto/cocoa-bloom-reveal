@@ -137,8 +137,7 @@ function RootedExperience() {
 function WelcomeScreen({ dimmed, progress, trackRef, onHandleDown }: { dimmed: boolean; progress: number; trackRef: React.RefObject<HTMLDivElement | null>; onHandleDown: (e: React.PointerEvent) => void }) {
   return (
     <section className="relative h-full w-full overflow-hidden bg-kraft">
-      <img src={frontPackage} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-70 mix-blend-multiply" />
-      <img src={landingTexture} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-20 mix-blend-soft-light" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,.3),transparent_65%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,.18),transparent_35%,rgba(64,42,25,.2))]" />
       <div className="absolute inset-0 bg-plum-deep/45 transition-opacity duration-700" style={{ opacity: dimmed ? 1 : 0, transitionTimingFunction: SOFT }} />
       <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
