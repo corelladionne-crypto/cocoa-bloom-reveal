@@ -195,7 +195,7 @@ function PlantScreen({ growing, onPlant }: { growing: boolean; onPlant: () => vo
       <div className="relative z-10">
         <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Plant</h2>
         <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>Arizona State University</span>
-        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>ASU’s Tribal Nations Policy Institute and Center for Tribal Digital Sovereignty plant knowledge alongside the seed — pairing Indigenous stewardship with digital tools so communities own the data behind the land they care for.</p>
+        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>ASU was built on a different idea: that excellence and access shouldn’t compete. Planting below adds your name to something built for everyone in this room, not a few.</p>
         <button type="button" onClick={onPlant} disabled={growing} className="mt-7 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95 disabled:opacity-70" style={{ fontFamily: HAAS }}>{growing ? "Planting…" : "Plant my seed"}</button>
       </div>
     </section>
