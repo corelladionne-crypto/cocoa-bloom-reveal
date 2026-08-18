@@ -203,28 +203,19 @@ function PlantScreen({ growing, onPlant }: { growing: boolean; onPlant: () => vo
 }
 
 function SoilWipe({ phase }: { phase: SoilPhase }) {
-  const transform =
-    phase === "rising"
-      ? "translateY(0)"
-      : "translateY(70%)";
+  const transform = phase === "rising" ? "translateY(0)" : "translateY(78%)";
 
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-[60] h-[34%] overflow-hidden"
-      style={{
-        transform,
-        transition: `transform 1050ms ${SOFT}`,
-      }}
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-[60] h-[30%] overflow-hidden"
+      style={{ transform, transition: `transform 1050ms ${SOFT}` }}
     >
-      <img
-        src={seedGround}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover object-top"
-      />
+      <KraftSoil className="h-full" />
     </div>
   );
 }
+
 
 function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName: (v: string) => void; rooted: boolean; onSubmit: (e: React.FormEvent) => void }) {
   return (
