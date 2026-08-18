@@ -180,8 +180,8 @@ function SeedOverlay({ phase }: { phase: SeedPhase }) {
     forming: { bottom: "10%", transform: "translate(-50%, 62px) scale(.18)", opacity: .35 },
     traveling: { bottom: "40%", transform: "translate(-50%, 0) scale(.78)", opacity: 1 },
     center: { bottom: "47%", transform: "translate(-50%, 0) scale(1)", opacity: 1 },
-    planting: { bottom: "30%", transform: "translate(-50%, 26px) scale(.62)", opacity: 1 },
-    planted: { bottom: "26%", transform: "translate(-50%, 54px) scale(.45)", opacity: 0 },
+    planting: { bottom: "44%", transform: "translate(-50%, 22px) scale(.9)", opacity: 1 },
+    planted: { bottom: "43%", transform: "translate(-50%, 30px) scale(.82)", opacity: 0 },
   };
   const s = positions[phase];
   return <div aria-hidden className="pointer-events-none absolute left-1/2 z-50" style={{ bottom: s.bottom, transform: s.transform, opacity: s.opacity, transition: `bottom 950ms ${SOFT}, transform 900ms ${SPRING}, opacity 520ms ${SOFT}` }}><img src={cocoaSeed} alt="" className="w-44 object-contain drop-shadow-[0_0_24px_rgba(233,194,90,.4)]" /></div>;
