@@ -2,9 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import cocoaPodMockup from "@/assets/cocoa-pod.png?v=2";
-import foilLetters from "../../Png for mockup-08.png";
-import landingTexture from "../../AdobeStock_1922231203.jpeg";
-import frontPackage from "../../Front package.png";
 import cocoaSeed from "@/assets/cacao-seed.png?v=2";
 import seedGround from "@/assets/seed-ground.png?v=2";
 import cocoaTree from "@/assets/cacao-tree.png?v=2";
