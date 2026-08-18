@@ -166,7 +166,7 @@ function SowScreen({ seeding, onBegin }: { seeding: boolean; onBegin: () => void
       <div className="animate-soft-in" style={{ animationDelay: "120ms" }}>
         <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Sow</h2>
         <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>Cadbury</span>
-        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>Every bean inside this bar comes through Cocoa Life — a program working alongside farming communities in Ghana and Côte d’Ivoire to grow cocoa that restores soil, shade and income rather than stripping them away.</p>
+        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>Grown from real cacao, sourced through Cadbury’s Cocoa Life — a real commitment to the farmers and forests cacao comes from, restoring the land a good harvest depends on.</p>
         <button type="button" onClick={onBegin} disabled={seeding} className="mt-8 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95 disabled:opacity-70" style={{ fontFamily: HAAS }}>{seeding ? "Planting…" : "Begin growing"}</button>
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[24%]" style={{ transform: seeding ? "translateY(28%) scaleX(.12)" : "translateY(0) scaleX(1)", opacity: seeding ? .7 : 1, transformOrigin: "50% 100%", transition: `transform 820ms ${SOFT}, opacity 620ms ${SOFT}` }}><TornStrip /></div>
