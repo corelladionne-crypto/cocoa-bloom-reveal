@@ -1,13 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import cocoaPodMockup from "@/assets/cocoa-pod.png?v=2";
-import foilLetters from "../../Png for mockup-08.png";
-import landingTexture from "../../AdobeStock_1922231203.jpeg";
-import frontPackage from "../../Front package.png";
-import cocoaSeed from "@/assets/cacao-seed.png?v=2";
-import seedGround from "@/assets/seed-ground.png?v=2";
-import cocoaTree from "@/assets/cacao-tree.png?v=2";
+import cocoaPodMockup from "@/assets/cocoa-pod.png";
+import cocoaSeed from "@/assets/cacao-seed.png";
+import seedGround from "@/assets/seed-ground.png";
+import cocoaTree from "@/assets/cacao-tree.png";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
 import { TornStrip, tearClipPath } from "@/components/rooted/torn-edge";
 
@@ -140,13 +137,12 @@ function RootedExperience() {
 function WelcomeScreen({ dimmed, progress, trackRef, onHandleDown }: { dimmed: boolean; progress: number; trackRef: React.RefObject<HTMLDivElement | null>; onHandleDown: (e: React.PointerEvent) => void }) {
   return (
     <section className="relative h-full w-full overflow-hidden bg-kraft">
-      <img src={frontPackage} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-70 mix-blend-multiply" />
-      <img src={landingTexture} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-20 mix-blend-soft-light" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,.3),transparent_65%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,.18),transparent_35%,rgba(64,42,25,.2))]" />
       <div className="absolute inset-0 bg-plum-deep/45 transition-opacity duration-700" style={{ opacity: dimmed ? 1 : 0, transitionTimingFunction: SOFT }} />
       <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
         <img src={cocoaPodMockup} alt="Cocoa pod packaging artwork" className="w-[18rem] max-w-full object-contain drop-shadow-[0_18px_35px_rgba(61,38,20,.25)]" />
-        <h1 className="mt-4 text-6xl font-bold leading-none tracking-tight" style={{ fontFamily: BODONI, backgroundImage: `url(${foilLetters})`, backgroundSize: "cover", backgroundPosition: "center", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>COCOA</h1>
+        <h1 className="mt-4 text-6xl font-bold leading-none tracking-tight" style={{ fontFamily: BODONI, backgroundImage: "linear-gradient(180deg,#f4dc9a,#e9c25a 55%,#b98f2c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>COCOA</h1>
         <p className="mt-2 text-xl italic text-plum-deep/75" style={{ fontFamily: GARAMOND }}>Theobroma Cocoa</p>
       </div>
       <div className="absolute inset-x-0 bottom-0 px-7 pb-9 transition-all duration-700" style={{ opacity: dimmed ? 1 : 0, transform: dimmed ? "translateY(0)" : "translateY(18px)", transitionTimingFunction: SPRING }}>
