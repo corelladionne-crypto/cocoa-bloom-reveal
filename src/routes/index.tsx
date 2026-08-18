@@ -101,7 +101,7 @@ function RootedExperience() {
   const rootTree = (e: React.FormEvent) => {
     e.preventDefault();
     setTreeGrowing(true);
-    setTimeout(() => setStep(5), 1250);
+    setTimeout(() => setStep(5), 2900);
   };
 
   if (step === 5) return <ThankYouScreen name={name} />;
