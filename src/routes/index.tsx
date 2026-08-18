@@ -3,10 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import cocoaPodMockup from "@/assets/cocoa-pod.png";
 import cocoaSeed from "@/assets/cacao-seed.png";
-import seedGround from "@/assets/seed-ground.png";
 import cocoaTree from "@/assets/cacao-tree.png";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
-import { TornStrip, tearClipPath } from "@/components/rooted/torn-edge";
+import { KraftSoil, TornStrip, tearClipPath } from "@/components/rooted/torn-edge";
 
 export const Route = createFileRoute("/")({
   head: () => ({
