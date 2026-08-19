@@ -208,7 +208,7 @@ function SoilWipe({ phase }: { phase: SoilPhase }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-[60] h-[30%] overflow-hidden"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-[60] h-[20%] overflow-hidden"
       style={{ transform, transition: `transform 1050ms ${SOFT}` }}
     >
       <KraftSoil className="h-full" />
