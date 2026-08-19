@@ -240,8 +240,8 @@ function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName
       <form onSubmit={onSubmit} className="relative z-10">
         <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Grow</h2>
         <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>Changing Futures</span>
-        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>The world ahead doesn’t look like the one behind it. Changing Futures is ASU’s commitment to build what doesn’t exist yet — because it has to. Tonight, you’re part of that.</p>
-        <label className="mt-6 block text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60" style={{ fontFamily: HAAS }}>Name
+        <p className="mt-4 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>The world ahead doesn’t look like the one behind it. Changing Futures is ASU’s commitment to build what doesn’t exist yet — because it has to. Tonight, you’re part of that.</p>
+        <label className="mt-5 block text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60" style={{ fontFamily: HAAS }}>Name
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your tree" className="mt-2 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 text-base font-normal normal-case tracking-normal text-foreground outline-none transition-colors focus:border-gold" style={{ fontFamily: GARAMOND }} />
         </label>
         <button type="submit" className="mt-6 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95" style={{ fontFamily: HAAS }}>Root my tree</button>
