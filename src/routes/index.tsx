@@ -92,16 +92,17 @@ function RootedExperience() {
     setPlanting(true);
     setSeedPhase("planting");
     setSoilPhase("rising");
-    setTimeout(() => setSeedPhase("planted"), 700);
     setTimeout(() => setStep(4), 720);
     setTimeout(() => setSoilPhase("receding"), 900);
+    setTimeout(() => setSeedPhase("resting"), 950);
     setTimeout(() => setSoilPhase("hidden"), 1550);
   };
 
   const rootTree = (e: React.FormEvent) => {
     e.preventDefault();
-    setTreeGrowing(true);
-    setTimeout(() => setStep(5), 2900);
+    setSeedPhase("planted");
+    setTimeout(() => setTreeGrowing(true), 700);
+    setTimeout(() => setStep(5), 3600);
   };
 
   if (step === 5) return <ThankYouScreen name={name} />;
