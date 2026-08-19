@@ -139,11 +139,12 @@ function WelcomeScreen({ dimmed, progress, trackRef, onHandleDown }: { dimmed: b
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,.3),transparent_65%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,.18),transparent_35%,rgba(64,42,25,.2))]" />
       <div className="absolute inset-0 bg-plum-deep/45 transition-opacity duration-700" style={{ opacity: dimmed ? 1 : 0, transitionTimingFunction: SOFT }} />
-      <div className="relative flex h-full flex-col items-center justify-start px-6 pt-14 text-center">
+      <div className="relative flex h-full flex-col items-center justify-start px-6 pt-10 text-center">
         <h1 className="text-6xl font-bold leading-none tracking-tight" style={{ fontFamily: BODONI, backgroundImage: "linear-gradient(180deg,#f4dc9a,#e9c25a 55%,#b98f2c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>COCOA</h1>
         <p className="mt-2 text-xl italic text-plum-deep/75" style={{ fontFamily: GARAMOND }}>Theobroma Cacao</p>
-        <img src={cocoaPodMockup} alt="Cocoa pod packaging artwork" className="-mt-2 w-[26rem] max-w-none shrink-0 object-contain drop-shadow-[0_18px_35px_rgba(61,38,20,.25)]" />
+        <img src={cocoaPodMockup} alt="Cocoa pod packaging artwork" className="mt-6 w-[22rem] max-w-none shrink-0 object-contain drop-shadow-[0_18px_35px_rgba(61,38,20,.25)]" />
       </div>
+
 
       <div className="absolute inset-x-0 bottom-0 px-7 pb-9 transition-all duration-700" style={{ opacity: dimmed ? 1 : 0, transform: dimmed ? "translateY(0)" : "translateY(18px)", transitionTimingFunction: SPRING }}>
         <p className="mb-4 text-center text-[14px] italic leading-relaxed text-gold-soft/95" style={{ fontFamily: GARAMOND }}>Slide the arrow across the screen to rip the bottom of the packaging.</p>
@@ -207,7 +208,7 @@ function SoilWipe({ phase }: { phase: SoilPhase }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-[60] h-[30%] overflow-hidden"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-[60] h-[20%] overflow-hidden"
       style={{ transform, transition: `transform 1050ms ${SOFT}` }}
     >
       <KraftSoil className="h-full" />
