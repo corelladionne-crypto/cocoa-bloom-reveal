@@ -27,7 +27,7 @@ const AVENIR = 'Avenir, "Avenir Next", "Helvetica Neue", Arial, sans-serif';
 const GARAMOND = '"EB Garamond", Georgia, serif';
 
 type Step = 1 | 2 | 3 | 4 | 5;
-type SeedPhase = "hidden" | "forming" | "traveling" | "center" | "planting" | "planted";
+type SeedPhase = "hidden" | "forming" | "traveling" | "center" | "planting" | "resting" | "planted";
 type SoilPhase = "hidden" | "rising" | "receding";
 
 function RootedExperience() {
@@ -92,16 +92,17 @@ function RootedExperience() {
     setPlanting(true);
     setSeedPhase("planting");
     setSoilPhase("rising");
-    setTimeout(() => setSeedPhase("planted"), 700);
     setTimeout(() => setStep(4), 720);
     setTimeout(() => setSoilPhase("receding"), 900);
+    setTimeout(() => setSeedPhase("resting"), 950);
     setTimeout(() => setSoilPhase("hidden"), 1550);
   };
 
   const rootTree = (e: React.FormEvent) => {
     e.preventDefault();
-    setTreeGrowing(true);
-    setTimeout(() => setStep(5), 2900);
+    setSeedPhase("planted");
+    setTimeout(() => setTreeGrowing(true), 700);
+    setTimeout(() => setStep(5), 3600);
   };
 
   if (step === 5) return <ThankYouScreen name={name} />;
@@ -126,7 +127,7 @@ function RootedExperience() {
           {step === 3 ? <PlantScreen growing={planting} onPlant={plantSeed} /> : null}
           {step === 4 ? <GrowScreen name={name} setName={setName} rooted={treeGrowing} onSubmit={rootTree} /> : null}
         </div>
-        {(step === 2 || step === 3) && seedPhase !== "hidden" && seedPhase !== "planted" ? <SeedOverlay phase={seedPhase} /> : null}
+        {step >= 2 && step <= 4 && seedPhase !== "hidden" ? <SeedOverlay phase={seedPhase} /> : null}
         {(step === 3 || step === 4) && soilPhase !== "hidden" ? <SoilWipe phase={soilPhase} /> : null}
       </div>
     </main>
@@ -181,7 +182,8 @@ function SeedOverlay({ phase }: { phase: SeedPhase }) {
     traveling: { bottom: "40%", transform: "translate(-50%, 0) scale(.78)", opacity: 1 },
     center: { bottom: "47%", transform: "translate(-50%, 0) scale(1)", opacity: 1 },
     planting: { bottom: "44%", transform: "translate(-50%, 22px) scale(.9)", opacity: 1 },
-    planted: { bottom: "43%", transform: "translate(-50%, 30px) scale(.82)", opacity: 0 },
+    resting: { bottom: "51%", transform: "translate(-50%, 0) scale(.5)", opacity: 1 },
+    planted: { bottom: "48%", transform: "translate(-50%, 24px) scale(.3)", opacity: 0 },
   };
   const s = positions[phase];
   return <div aria-hidden className="pointer-events-none absolute left-1/2 z-50" style={{ bottom: s.bottom, transform: s.transform, opacity: s.opacity, transition: `bottom 950ms ${SOFT}, transform 900ms ${SPRING}, opacity 520ms ${SOFT}` }}><img src={cocoaSeed} alt="" className="w-44 object-contain drop-shadow-[0_0_24px_rgba(233,194,90,.4)]" /></div>;
@@ -221,11 +223,11 @@ function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName
   return (
     <section className="relative flex h-full w-full animate-soft-in flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
       <ChangingFuturesMark />
-      <div className="relative flex flex-1 items-end justify-center overflow-visible">
+      <div className="relative h-[230px] min-h-0 shrink-0 overflow-visible">
         <img
           src={cocoaTree}
           alt="Gold line drawing of a full cocoa tree"
-          className="mx-auto w-72 origin-bottom object-contain"
+          className="absolute bottom-0 left-1/2 w-72 -translate-x-1/2 origin-bottom object-contain"
           style={{
             transform: rooted ? "scaleY(1) scaleX(1)" : "scaleY(0.04) scaleX(0.35)",
             opacity: rooted ? 1 : 0.15,
@@ -238,8 +240,8 @@ function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName
       <form onSubmit={onSubmit} className="relative z-10">
         <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Grow</h2>
         <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>Changing Futures</span>
-        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>The world ahead doesn’t look like the one behind it. Changing Futures is ASU’s commitment to build what doesn’t exist yet — because it has to. Tonight, you’re part of that.</p>
-        <label className="mt-6 block text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60" style={{ fontFamily: HAAS }}>Name
+        <p className="mt-4 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>The world ahead doesn’t look like the one behind it. Changing Futures is ASU’s commitment to build what doesn’t exist yet — because it has to. Tonight, you’re part of that.</p>
+        <label className="mt-5 block text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60" style={{ fontFamily: HAAS }}>Name
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your tree" className="mt-2 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 text-base font-normal normal-case tracking-normal text-foreground outline-none transition-colors focus:border-gold" style={{ fontFamily: GARAMOND }} />
         </label>
         <button type="submit" className="mt-6 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95" style={{ fontFamily: HAAS }}>Root my tree</button>
