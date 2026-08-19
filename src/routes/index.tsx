@@ -221,7 +221,7 @@ function SoilWipe({ phase }: { phase: SoilPhase }) {
 
 function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName: (v: string) => void; rooted: boolean; onSubmit: (e: React.FormEvent) => void }) {
   return (
-    <section className="relative flex h-full w-full animate-soft-in flex-col justify-between overflow-hidden bg-plum px-8 pb-[8.5rem] pt-16">
+    <section className="relative flex h-full w-full animate-soft-in flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
       <ChangingFuturesMark />
       <div className="relative flex flex-1 items-end justify-center overflow-visible">
         <img
