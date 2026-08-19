@@ -127,7 +127,7 @@ function RootedExperience() {
           {step === 3 ? <PlantScreen growing={planting} onPlant={plantSeed} /> : null}
           {step === 4 ? <GrowScreen name={name} setName={setName} rooted={treeGrowing} onSubmit={rootTree} /> : null}
         </div>
-        {(step === 2 || step === 3) && seedPhase !== "hidden" && seedPhase !== "planted" ? <SeedOverlay phase={seedPhase} /> : null}
+        {step >= 2 && step <= 4 && seedPhase !== "hidden" ? <SeedOverlay phase={seedPhase} /> : null}
         {(step === 3 || step === 4) && soilPhase !== "hidden" ? <SoilWipe phase={soilPhase} /> : null}
       </div>
     </main>
