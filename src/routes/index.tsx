@@ -223,11 +223,11 @@ function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName
   return (
     <section className="relative flex h-full w-full animate-soft-in flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
       <ChangingFuturesMark />
-      <div className="relative flex flex-1 items-end justify-center overflow-visible">
+      <div className="relative h-[230px] min-h-0 shrink-0 overflow-visible">
         <img
           src={cocoaTree}
           alt="Gold line drawing of a full cocoa tree"
-          className="mx-auto w-72 origin-bottom object-contain"
+          className="absolute bottom-0 left-1/2 w-72 -translate-x-1/2 origin-bottom object-contain"
           style={{
             transform: rooted ? "scaleY(1) scaleX(1)" : "scaleY(0.04) scaleX(0.35)",
             opacity: rooted ? 1 : 0.15,
