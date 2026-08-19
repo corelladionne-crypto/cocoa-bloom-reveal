@@ -142,7 +142,7 @@ function WelcomeScreen({ dimmed, progress, trackRef, onHandleDown }: { dimmed: b
       <div className="relative flex h-full flex-col items-center justify-start px-6 pt-10 text-center">
         <h1 className="text-6xl font-bold leading-none tracking-tight" style={{ fontFamily: BODONI, backgroundImage: "linear-gradient(180deg,#f4dc9a,#e9c25a 55%,#b98f2c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>COCOA</h1>
         <p className="mt-2 text-xl italic text-plum-deep/75" style={{ fontFamily: GARAMOND }}>Theobroma Cacao</p>
-        <img src={cocoaPodMockup} alt="Cocoa pod packaging artwork" className="-mt-24 w-[26rem] max-w-none shrink-0 origin-top scale-[1.28] object-contain drop-shadow-[0_18px_35px_rgba(61,38,20,.25)]" />
+        <img src={cocoaPodMockup} alt="Cocoa pod packaging artwork" className="mt-6 w-[23rem] max-w-none shrink-0 object-contain drop-shadow-[0_18px_35px_rgba(61,38,20,.25)]" />
       </div>
 
 
