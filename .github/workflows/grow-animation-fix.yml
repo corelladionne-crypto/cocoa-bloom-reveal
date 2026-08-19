@@ -1,0 +1,77 @@
+name: Apply Grow animation
+
+on:
+  push:
+    paths:
+      - '.github/workflows/grow-animation-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch Grow slide
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/routes/index.tsx')
+          s = p.read_text()
+          s = s.replace('{step >= 2 && step <= 4 && seedPhase !== "hidden" ?', '{step >= 2 && step <= 3 && seedPhase !== "hidden" ?')
+          start = s.index('function GrowScreen({')
+          end = s.index('\nfunction ThankYouScreen', start)
+          new = r'''function GrowScreen({ name, setName, rooted, onSubmit }: { name: string; setName: (v: string) => void; rooted: boolean; onSubmit: (e: React.FormEvent) => void }) {
+  const [growthStage, setGrowthStage] = useState<0 | 1 | 2 | 3>(0);
+
+  useEffect(() => {
+    const a = window.setTimeout(() => setGrowthStage(1), 1500);
+    const b = window.setTimeout(() => setGrowthStage(2), 3900);
+    const c = window.setTimeout(() => setGrowthStage(3), 6900);
+    return () => { window.clearTimeout(a); window.clearTimeout(b); window.clearTimeout(c); };
+  }, []);
+
+  const showTree = growthStage === 3 || rooted;
+
+  return (
+    <section className="relative flex h-full w-full flex-col overflow-hidden bg-plum px-8 pb-10 pt-16">
+      <div className="shrink-0"><ChangingFuturesMark /></div>
+      <div className="relative mt-2 flex h-[255px] shrink-0 items-end justify-center overflow-visible">
+        <div className="absolute bottom-0 left-0 right-0 h-24"><KraftSoil className="h-full" /></div>
+        <div className="absolute bottom-[62px] left-1/2 z-10 -translate-x-1/2" style={{ opacity: growthStage < 3 ? 1 : 0, transition: `opacity 1200ms ${SOFT}` }}>
+          <img src={cocoaSeed} alt="" className="w-24 object-contain" style={{ opacity: growthStage === 0 ? 1 : 0, transform: growthStage === 0 ? 'scale(1)' : 'scale(.7)', transition: `opacity 900ms ${SOFT}, transform 1200ms ${SOFT}` }} />
+        </div>
+        <div aria-hidden className="absolute bottom-[54px] left-1/2 z-10 h-36 w-28 -translate-x-1/2" style={{ opacity: growthStage === 1 || growthStage === 2 ? 1 : 0, transform: growthStage === 1 ? 'translateX(-50%) scale(.55)' : growthStage === 2 ? 'translateX(-50%) scale(1)' : 'translateX(-50%) scale(.35)', transition: `opacity 1200ms ${SOFT}, transform 1900ms ${SOFT}` }}>
+          <div className="absolute bottom-0 left-1/2 h-28 w-[5px] -translate-x-1/2 rounded-full bg-gold-soft/90" />
+          <div className="absolute bottom-16 left-1/2 h-[3px] w-16 -translate-x-1/2 -rotate-[28deg] origin-left rounded-full bg-gold-soft/90" />
+          <div className="absolute bottom-20 left-1/2 h-[3px] w-14 -translate-x-1/2 rotate-[30deg] origin-left rounded-full bg-gold-soft/90" />
+          <div className="absolute bottom-24 left-[25%] h-10 w-7 rotate-[-28deg] rounded-[100%_0_100%_0] border-2 border-gold-soft/90" />
+          <div className="absolute bottom-28 right-[18%] h-11 w-8 rotate-[25deg] rounded-[0_100%_0_100%] border-2 border-gold-soft/90" />
+          <div className="absolute bottom-12 left-[13%] h-8 w-6 rotate-[-35deg] rounded-[100%_0_100%_0] border-2 border-gold-soft/75" />
+          <div className="absolute bottom-16 right-[7%] h-8 w-6 rotate-[35deg] rounded-[0_100%_0_100%] border-2 border-gold-soft/75" />
+        </div>
+        <img src={cocoaTree} alt="Gold line drawing of a full cocoa tree" className="absolute bottom-0 left-1/2 z-20 w-72 -translate-x-1/2 origin-bottom object-contain" style={{ transform: showTree ? 'translateX(-50%) scale(1)' : 'translateX(-50%) scale(.82)', opacity: showTree ? 1 : 0, filter: showTree ? 'drop-shadow(0 0 30px rgba(233,194,90,.4))' : 'none', transition: `opacity 1700ms ${SOFT}, transform 2600ms ${SOFT}, filter 1700ms ${SOFT}` }} />
+      </div>
+      <form onSubmit={onSubmit} className="relative z-30 mt-2">
+        <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Grow</h2>
+        <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>Changing Futures</span>
+        <p className="mt-3 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>The world ahead doesn’t look like the one behind it. Changing Futures is ASU’s commitment to build what doesn’t exist yet — because it has to. Tonight, you’re part of that.</p>
+        <label className="mt-3 block text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60" style={{ fontFamily: HAAS }}>Name
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your tree" className="mt-2 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 text-base font-normal normal-case tracking-normal text-foreground outline-none transition-colors focus:border-gold" style={{ fontFamily: GARAMOND }} />
+        </label>
+        <button type="submit" className="mt-4 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95" style={{ fontFamily: HAAS }}>Root my tree</button>
+      </form>
+    </section>
+  );
+}
+'''
+          p.write_text(s[:start] + new + s[end:])
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/routes/index.tsx
+          git commit -m "Slow seed plant tree growth animation"
+          git push
