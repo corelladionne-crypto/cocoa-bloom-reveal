@@ -27,7 +27,7 @@ const AVENIR = 'Avenir, "Avenir Next", "Helvetica Neue", Arial, sans-serif';
 const GARAMOND = '"EB Garamond", Georgia, serif';
 
 type Step = 1 | 2 | 3 | 4 | 5;
-type SeedPhase = "hidden" | "forming" | "traveling" | "center" | "planting" | "planted";
+type SeedPhase = "hidden" | "forming" | "traveling" | "center" | "planting" | "resting" | "planted";
 type SoilPhase = "hidden" | "rising" | "receding";
 
 function RootedExperience() {
