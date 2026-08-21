@@ -17,12 +17,11 @@ Each physical tag should contain a URL like:
 
 The short ID is the primary key in `public.trees`. The app computes growth from `planted_at`, so the same URL works on any device.
 
-For about 400 tags, generate 400 unique IDs (8–10 characters), create a CSV with `id,url`, then use the CSV with your preferred QR/label printer workflow. Keep the CSV as the private event inventory.
+Generate a batch of 400 links with:
 
-Example rows:
+`node scripts/generate-guest-tags.mjs 400 https://YOUR-DOMAIN/tree`
 
-`A7K92B,https://YOUR-DOMAIN/tree/A7K92B`
-`Q4M81Z,https://YOUR-DOMAIN/tree/Q4M81Z`
+That writes `guest-tags.csv` with unique `id,url` rows. Use that CSV as the source for your QR/label-printing workflow and keep it as the private event inventory.
 
 ## Checking saved trees
 Supabase → Table Editor → `public.trees` shows one row per guest. `planted_at` is the authoritative growth start time and `last_visited_at` updates when a saved tree is scanned.
