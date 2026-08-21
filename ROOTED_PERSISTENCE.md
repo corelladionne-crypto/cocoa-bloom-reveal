@@ -27,4 +27,4 @@ That writes `guest-tags.csv` with unique `id,url` rows. Use that CSV as the sour
 Supabase → Table Editor → `public.trees` shows one row per guest. `planted_at` is the authoritative growth start time and `last_visited_at` updates when a saved tree is scanned.
 
 ## Growth timing
-`GROWTH_DURATION_HOURS` is currently 36 in `src/routes/index.tsx`. Growth stage is computed from elapsed time; it is not an animation replay.
+`GROWTH_DURATION_HOURS` is currently 24 in `src/routes/index.tsx`. Growth stage is computed from elapsed time; it is not an animation replay.
