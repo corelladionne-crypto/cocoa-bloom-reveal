@@ -14,7 +14,7 @@ const SOFT = "cubic-bezier(0.22, 1, 0.36, 1)";
 const BODONI = '"Bodoni 72", "Bodoni MT", Didot, Georgia, serif';
 const HAAS = '"Neue Haas Grotesk Display Pro", "Neue Haas Grotesk Text Pro", "Helvetica Neue", Arial, sans-serif';
 const GARAMOND = '"EB Garamond", Georgia, serif';
-export const GROWTH_DURATION_HOURS = 36;
+export const GROWTH_DURATION_HOURS = 24;
 
 export type GuestFlowProps = { guestId?: string; existingTree?: TreeRecord | null };
 
@@ -135,18 +135,20 @@ function PlantPage({ name, setName, saving, onPlant }: { name: string; setName: 
   );
 }
 
-function LivingTree({ tree }: { tree: TreeRecord }) {
+export function LivingTree({ tree }: { tree: TreeRecord }) {
   const [now, setNow] = useState(Date.now());
-  useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 30000); return () => window.clearInterval(id); }, []);
+  useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(id); }, []);
   const elapsed = Math.max(0, now - new Date(tree.planted_at).getTime());
-  const ratio = Math.min(1, elapsed / (GROWTH_DURATION_HOURS * 60 * 60 * 1000));
+  const duration = GROWTH_DURATION_HOURS * 60 * 60 * 1000;
+  const ratio = Math.min(1, elapsed / duration);
   const stage = ratio >= 1 ? 4 : ratio >= .72 ? 3 : ratio >= .42 ? 2 : ratio >= .12 ? 1 : 0;
   const labels = ["Your seed is settling into the soil.", "Your tree is taking root.", "Your tree has its first leaves.", "Your tree is reaching upward.", "Your tree has fully grown."];
-  const next = Math.max(0, GROWTH_DURATION_HOURS * 60 * 60 * 1000 - elapsed);
+  const next = Math.max(0, duration - elapsed);
   const hours = Math.floor(next / 3600000);
   const minutes = Math.floor((next % 3600000) / 60000);
+  const seconds = Math.floor((next % 60000) / 1000);
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4"><section className="relative h-[844px] w-[390px] overflow-hidden rounded-[2rem] bg-plum px-8 pb-10 pt-16 shadow-2xl"><ChangingFuturesMark /><div className="mt-5"><p className="text-[11px] uppercase tracking-[0.3em] text-gold-soft/60" style={{ fontFamily: HAAS }}>Your living tree</p><h1 className="mt-2 text-5xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>{tree.name ? `${tree.name}'s tree` : "Your tree"}</h1></div><div className="relative mt-4 flex h-[400px] items-end justify-center overflow-visible"><div className="absolute bottom-0 left-0 right-0 h-28"><KraftSoil className="h-full" /></div><img src={stage === 0 ? cocoaSeed : cocoaTree} alt="Cocoa tree growth stage" className="absolute bottom-16 left-1/2 z-10 -translate-x-1/2 object-contain" style={{ width: stage === 0 ? 92 : 290, opacity: stage === 0 ? 1 : .55 + stage * .1125, transform: `translateX(-50%) scale(${stage === 0 ? 1 : .42 + stage * .145})`, transformOrigin: "bottom center", transition: `transform 1800ms ${SOFT}, opacity 1400ms ${SOFT}` }} /></div><p className="text-center text-xl italic text-gold-soft" style={{ fontFamily: GARAMOND }}>{labels[stage]}</p><div className="mt-4 rounded-2xl border border-gold/25 bg-plum-deep/45 p-4 text-center"><p className="text-[10px] font-bold uppercase tracking-[0.24em] text-gold/70" style={{ fontFamily: HAAS }}>Cocoa Life / West Africa</p><p className="mt-2 text-sm italic text-foreground/75" style={{ fontFamily: GARAMOND }}>{stage === 4 ? "Fully grown — this tree will remain rooted here." : `${hours}h ${minutes}m until the next stage`}</p></div></section></main>
+    <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4"><section className="relative h-[844px] w-[390px] overflow-hidden rounded-[2rem] bg-plum px-8 pb-10 pt-16 shadow-2xl"><ChangingFuturesMark /><div className="mt-5"><p className="text-[11px] uppercase tracking-[0.3em] text-gold-soft/60" style={{ fontFamily: HAAS }}>Your living tree</p><h1 className="mt-2 text-5xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>{tree.name ? `${tree.name}'s tree` : "Your tree"}</h1></div><div className="relative mt-4 flex h-[400px] items-end justify-center overflow-visible"><div className="absolute bottom-0 left-0 right-0 h-28"><KraftSoil className="h-full" /></div><img src={stage === 0 ? cocoaSeed : cocoaTree} alt="Cocoa tree growth stage" className="absolute bottom-16 left-1/2 z-10 -translate-x-1/2 object-contain" style={{ width: stage === 0 ? 92 : 290, opacity: stage === 0 ? 1 : .55 + stage * .1125, transform: `translateX(-50%) scale(${stage === 0 ? 1 : .42 + stage * .145})`, transformOrigin: "bottom center", transition: `transform 1800ms ${SOFT}, opacity 1400ms ${SOFT}` }} /></div><p className="text-center text-xl italic text-gold-soft" style={{ fontFamily: GARAMOND }}>{labels[stage]}</p><div className="mt-4 rounded-2xl border border-gold/25 bg-plum-deep/45 p-4 text-center"><p className="text-[10px] font-bold uppercase tracking-[0.24em] text-gold/70" style={{ fontFamily: HAAS }}>Cocoa Life / West Africa</p><p className="mt-2 text-sm italic text-foreground/75" style={{ fontFamily: GARAMOND }}>{stage === 4 ? "Fully grown — this tree will remain rooted here." : `${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s remaining`}</p></div></section></main>
   );
 }
 
