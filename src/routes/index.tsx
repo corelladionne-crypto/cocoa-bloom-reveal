@@ -1,465 +1,158 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import cocoaPodMockup from "@/assets/cocoa-pod.png";
 import cocoaSeed from "@/assets/cacao-seed.png";
 import cocoaTree from "@/assets/cacao-tree.png";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
-import { KraftSoil, TornStrip, tearClipPath } from "@/components/rooted/torn-edge";
+import { KraftSoil } from "@/components/rooted/torn-edge";
+import { plantTree, type TreeRecord } from "@/lib/tree.server";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "COCOA / Rooted — A Gifting Reveal" },
-      {
-        name: "description",
-        content:
-          "Tear the packaging, sow a cocoa seed with Cadbury, ASU and Changing Futures, and watch a living grove grow.",
-      },
-      { property: "og:title", content: "COCOA / Rooted — A Gifting Reveal" },
-      {
-        property: "og:description",
-        content: "An unwrapping ritual that plants a cocoa seed and grows a living grove.",
-      },
-    ],
-  }),
-  component: RootedExperience,
-});
+export const Route = createFileRoute("/")({ component: RootedExperience });
 
-const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 const SOFT = "cubic-bezier(0.22, 1, 0.36, 1)";
 const BODONI = '"Bodoni 72", "Bodoni MT", Didot, Georgia, serif';
 const HAAS = '"Neue Haas Grotesk Display Pro", "Neue Haas Grotesk Text Pro", "Helvetica Neue", Arial, sans-serif';
 const GARAMOND = '"EB Garamond", Georgia, serif';
+export const GROWTH_DURATION_HOURS = 36;
 
-type Step = 1 | 2 | 3 | 4 | 5;
-type SeedPhase = "hidden" | "forming" | "traveling" | "center" | "resting" | "planting" | "planted";
+export type GuestFlowProps = { guestId?: string; existingTree?: TreeRecord | null };
 
-const SEQUENCE = ["Sow", "Plant", "Grow"] as const;
-
-function SequenceHeader({ active }: { active: 0 | 1 | 2 }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-gold-soft/70" style={{ fontFamily: HAAS }}>
-        Rooted
-      </span>
-      <div className="flex items-center gap-2">
-        {SEQUENCE.map((label, i) => (
-          <span key={label} className="flex items-center gap-2">
-            <span
-              className="size-[5px] rounded-full transition-colors duration-500"
-              style={{
-                backgroundColor:
-                  i === active
-                    ? "var(--gold)"
-                    : "color-mix(in oklab, var(--gold) 30%, transparent)",
-              }}
-            />
-            {i < SEQUENCE.length - 1 ? <span className="h-px w-3 bg-gold/20" /> : null}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RootedExperience() {
-  const [step, setStep] = useState<Step>(1);
-  const [dimmed, setDimmed] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [tearDone, setTearDone] = useState(false);
-  const [seedPhase, setSeedPhase] = useState<SeedPhase>("hidden");
-  const [growing, setGrowing] = useState(false);
-  const [treeGrowing, setTreeGrowing] = useState(false);
-  const [name, setName] = useState("");
-  const trackRef = useRef<HTMLDivElement>(null);
-  const draggingRef = useRef(false);
+export function RootedExperience({ guestId: providedGuestId, existingTree = null }: GuestFlowProps) {
+  const guestId = useMemo(() => providedGuestId || makeGuestId(), [providedGuestId]);
+  const [page, setPage] = useState(existingTree?.planted_at ? 5 : 1);
+  const [tapCount, setTapCount] = useState(0);
+  const [opened, setOpened] = useState(false);
+  const [name, setName] = useState(existingTree?.name ?? "");
+  const [tree, setTree] = useState<TreeRecord | null>(existingTree);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setDimmed(true), 700);
-    return () => clearTimeout(t);
-  }, []);
+    if (existingTree?.planted_at) setPage(5);
+  }, [existingTree?.planted_at]);
 
-  const completeTear = useCallback(() => {
-    draggingRef.current = false;
-    setProgress(1);
-    setTearDone(true);
-    setTimeout(() => setStep(2), 620);
-  }, []);
-
-  const updateFromClientX = useCallback(
-    (clientX: number) => {
-      const el = trackRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const p = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-      setProgress(p);
-      if (p >= 0.9) completeTear();
-    },
-    [completeTear],
-  );
-
-  useEffect(() => {
-    const move = (e: PointerEvent) => draggingRef.current && updateFromClientX(e.clientX);
-    const up = () => {
-      if (!draggingRef.current) return;
-      draggingRef.current = false;
-      setProgress((p) => (p >= 0.9 ? 1 : 0));
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-    return () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-    };
-  }, [updateFromClientX]);
-
-  const beginGrowing = () => {
-    if (step !== 2 || seedPhase !== "hidden") return;
-    setSeedPhase("forming");
-    setTimeout(() => setSeedPhase("traveling"), 90);
-    setTimeout(() => setStep(3), 420);
-    setTimeout(() => setSeedPhase("center"), 900);
-  };
-
-  const moveToGrow = () => {
-    if (step !== 3 || growing) return;
-    setGrowing(true);
-    setSeedPhase("resting");
-    setTimeout(() => setStep(4), 850);
-  };
-
-  const handleNameChange = (value: string) => {
-    setName(value);
-    if (value.trim().length > 0 && seedPhase === "resting") {
-      setSeedPhase("planting");
-      setTimeout(() => setSeedPhase("planted"), 850);
+  const tapGift = () => {
+    if (opened) return;
+    const next = Math.min(3, tapCount + 1);
+    setTapCount(next);
+    if (next === 3) {
+      setOpened(true);
+      window.setTimeout(() => setPage(4), 900);
     }
   };
 
-  const rootTree = (e: React.FormEvent) => {
-    e.preventDefault();
-    setTreeGrowing(true);
-    setTimeout(() => setStep(5), 3600);
+  const plant = async () => {
+    if (saving || tree?.planted_at) return;
+    setSaving(true);
+    try {
+      const saved = await plantTree({ data: { id: guestId, name: name.trim() || null } });
+      setTree(saved);
+      setPage(5);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  if (step === 5) return <ThankYouScreen name={name} />;
+  if (page === 5 && tree?.planted_at) return <LivingTree tree={tree} />;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
-      <div className="relative overflow-hidden rounded-[2rem] shadow-2xl" style={{ width: 390, height: 844 }}>
-        <div className="absolute inset-0">
-          {step === 1 ? (
-            <div
-              className="absolute inset-0 z-40"
-              style={{
-                clipPath: tearClipPath(progress),
-                opacity: tearDone ? 0 : 1,
-                transition: draggingRef.current
-                  ? "none"
-                  : `clip-path 650ms ${SPRING}, opacity 650ms ${SOFT}`,
-              }}
-            >
-              <WelcomeScreen
-                dimmed={dimmed}
-                progress={progress}
-                trackRef={trackRef}
-                onHandleDown={(e) => {
-                  draggingRef.current = true;
-                  (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-                }}
-              />
-            </div>
-          ) : null}
-
-          {step === 2 ? <SowScreen seeding={seedPhase !== "hidden"} onBegin={beginGrowing} /> : null}
-          {step === 3 ? <PlantScreen growing={growing} onPlant={moveToGrow} /> : null}
-          {step === 4 ? (
-            <GrowScreen
-              name={name}
-              setName={handleNameChange}
-              rooted={treeGrowing}
-              onSubmit={rootTree}
-            />
-          ) : null}
-        </div>
-
-        {step >= 2 && step <= 4 && seedPhase !== "hidden" ? (
-          <SeedOverlay phase={seedPhase} />
-        ) : null}
+      <div className="relative h-[844px] w-[390px] overflow-hidden rounded-[2rem] shadow-2xl">
+        {page === 1 ? <RelationshipPage onContinue={() => setPage(2)} /> : null}
+        {page === 2 ? <StoryPage onContinue={() => setPage(3)} /> : null}
+        {page === 3 ? <GiftPage tapCount={tapCount} opened={opened} onTap={tapGift} /> : null}
+        {page === 4 ? <PlantPage name={name} setName={setName} saving={saving} onPlant={plant} /> : null}
       </div>
     </main>
   );
 }
 
-function WelcomeScreen({
-  dimmed,
-  progress,
-  trackRef,
-  onHandleDown,
-}: {
-  dimmed: boolean;
-  progress: number;
-  trackRef: React.RefObject<HTMLDivElement | null>;
-  onHandleDown: (e: React.PointerEvent) => void;
-}) {
+function RelationshipPage({ onContinue }: { onContinue: () => void }) {
   return (
-    <section className="relative h-full w-full overflow-hidden bg-kraft">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,.3),transparent_65%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,.18),transparent_35%,rgba(64,42,25,.2))]" />
-      <div
-        className="absolute inset-0 bg-plum-deep/45 transition-opacity duration-700"
-        style={{ opacity: dimmed ? 1 : 0, transitionTimingFunction: SOFT }}
-      />
-      <div className="relative flex h-full flex-col items-center justify-start px-6 pt-10 text-center">
-        <h1
-          className="text-6xl font-bold leading-none tracking-tight"
-          style={{
-            fontFamily: BODONI,
-            backgroundImage: "linear-gradient(180deg,#f4dc9a,#e9c25a 55%,#b98f2c)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}
-        >
-          COCOA
-        </h1>
-        <p className="mt-2 text-xl italic text-plum-deep/75" style={{ fontFamily: GARAMOND }}>
-          Theobroma Cocoa
-        </p>
-        <img
-          src={cocoaPodMockup}
-          alt="Cocoa pod packaging artwork"
-          className="mt-6 w-[22rem] max-w-none shrink-0 object-contain drop-shadow-[0_18px_35px_rgba(61,38,20,.25)]"
-        />
-      </div>
-
-      <div
-        className="absolute inset-x-0 bottom-0 px-7 pb-9 transition-all duration-700"
-        style={{
-          opacity: dimmed ? 1 : 0,
-          transform: dimmed ? "translateY(0)" : "translateY(18px)",
-          transitionTimingFunction: SPRING,
-        }}
-      >
-        <p className="mb-4 text-center text-[14px] italic leading-relaxed text-gold-soft/95" style={{ fontFamily: GARAMOND }}>
-          Slide the arrow across the screen to rip the bottom of the packaging.
-        </p>
-        <div ref={trackRef} className="relative h-16 rounded-full border border-gold/45 bg-plum-deep/60 backdrop-blur-sm">
-          <div
-            className="absolute inset-y-1 left-1 rounded-full bg-gold/15"
-            style={{ width: `calc(${Math.max(progress, 0.001) * 100}% - 0.5rem)` }}
-          />
-          <button
-            type="button"
-            aria-label="Drag to tear the packaging"
-            onPointerDown={onHandleDown}
-            className="absolute top-1/2 grid size-14 -translate-y-1/2 cursor-grab touch-none place-items-center rounded-full bg-gold text-plum-deep glow-gold active:cursor-grabbing"
-            style={{
-              left: `calc(0.25rem + ${progress} * (100% - 4rem))`,
-              transition: `left 400ms ${SPRING}`,
-            }}
-          >
-            <svg viewBox="0 0 24 24" className="size-6" fill="none" aria-hidden>
-              <path d="M5 12h13m0 0-5-5m5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+    <section className="relative flex h-full w-full flex-col overflow-hidden bg-kraft px-7 pb-8 pt-10 text-plum-deep">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(255,255,255,.28),transparent_62%)]" />
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="flex items-center justify-between"><AsuMark /><CadburyMark /></div>
+        <div className="mt-7">
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ fontFamily: HAAS }}>Rooted / Changing Futures</p>
+          <h1 className="mt-3 text-6xl font-bold leading-[.9]" style={{ fontFamily: BODONI }}>A seed can<br />change a future.</h1>
+          <p className="mt-5 text-[16px] italic leading-relaxed" style={{ fontFamily: GARAMOND }}>Cadbury’s Cocoa Life program works with cocoa-growing communities in West Africa to support farmers, strengthen livelihoods, and protect the landscapes cocoa depends on.</p>
+          <p className="mt-3 text-[16px] italic leading-relaxed" style={{ fontFamily: GARAMOND }}>Arizona State University’s Changing Futures brings that same belief in possibility into education: opportunity can change the direction of a life. Rooted connects those ideas through one small gesture — planting a seed and watching what it can become.</p>
         </div>
+        <div className="mt-5 grid grid-cols-2 gap-3"><VideoPlaceholder label="A farmer’s story" /><VideoPlaceholder label="A student’s story" /></div>
+        <div className="mt-auto"><p className="mb-3 text-center text-[13px] italic text-plum-deep/70" style={{ fontFamily: GARAMOND }}>Three stories. One growing future.</p><button type="button" onClick={onContinue} className="w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep" style={{ fontFamily: HAAS }}>Continue</button></div>
       </div>
     </section>
   );
 }
 
-function SowScreen({ seeding, onBegin }: { seeding: boolean; onBegin: () => void }) {
-  return (
-    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-28 pt-16">
-      <div className="animate-soft-in flex flex-col gap-6">
-        <SequenceHeader active={0} />
-        <CadburyMark />
-      </div>
-
-      <div className="animate-soft-in" style={{ animationDelay: "120ms" }}>
-        <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>
-          Sow
-        </h2>
-        <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>
-          Cadbury
-        </span>
-        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>
-          Grown from real cocoa, sourced through Cadbury’s Cocoa Life — a real commitment to the farmers and forests cocoa comes from, restoring the land a good harvest depends on.
-        </p>
-        <button
-          type="button"
-          onClick={onBegin}
-          disabled={seeding}
-          className="mt-8 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95 disabled:opacity-70"
-          style={{ fontFamily: HAAS }}
-        >
-          {seeding ? "Growing…" : "Begin growing"}
-        </button>
-      </div>
-
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[24%]"
-        style={{
-          transform: seeding ? "translateY(28%) scaleX(.12)" : "translateY(0) scaleX(1)",
-          opacity: seeding ? .7 : 1,
-          transformOrigin: "50% 100%",
-          transition: `transform 820ms ${SOFT}, opacity 620ms ${SOFT}`,
-        }}
-      >
-        <TornStrip />
-      </div>
-    </section>
-  );
+function VideoPlaceholder({ label }: { label: string }) {
+  return <div className="overflow-hidden rounded-2xl border border-plum-deep/20 bg-plum-deep/10"><video className="aspect-video w-full object-cover" controls muted playsInline preload="metadata" src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" /><p className="px-3 py-2 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ fontFamily: HAAS }}>{label} / sample footage</p></div>;
 }
 
-function SeedOverlay({ phase }: { phase: SeedPhase }) {
-  const positions: Record<SeedPhase, { bottom: string; transform: string; opacity: number }> = {
-    hidden: { bottom: "8%", transform: "translate(-50%, 90px) scale(.12)", opacity: 0 },
-    forming: { bottom: "10%", transform: "translate(-50%, 62px) scale(.18)", opacity: .35 },
-    traveling: { bottom: "40%", transform: "translate(-50%, 0) scale(.78)", opacity: 1 },
-    center: { bottom: "49%", transform: "translate(-50%, 0) scale(1)", opacity: 1 },
-    resting: { bottom: "44%", transform: "translate(-50%, 0) scale(.66)", opacity: 1 },
-    planting: { bottom: "29%", transform: "translate(-50%, 18px) scale(.56)", opacity: 1 },
-    planted: { bottom: "25%", transform: "translate(-50%, 48px) scale(.38)", opacity: 0 },
-  };
-
-  const s = positions[phase];
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute left-1/2 z-50"
-      style={{
-        bottom: s.bottom,
-        transform: s.transform,
-        opacity: s.opacity,
-        transition: `bottom 1050ms ${SOFT}, transform 950ms ${SPRING}, opacity 520ms ${SOFT}`,
-      }}
-    >
-      <img src={cocoaSeed} alt="" className="w-44 object-contain drop-shadow-[0_0_24px_rgba(233,194,90,.4)]" />
-    </div>
-  );
-}
-
-function PlantScreen({ growing, onPlant }: { growing: boolean; onPlant: () => void }) {
-  return (
-    <section className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-plum px-8 pb-14 pt-16">
-      <div className="animate-soft-in flex flex-col gap-6">
-        <SequenceHeader active={1} />
-        <AsuMark />
-      </div>
-
-      <div className="relative flex flex-1 items-center justify-center overflow-visible" />
-
-      <div className="relative z-10">
-        <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>
-          Plant
-        </h2>
-        <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>
-          Arizona State University
-        </span>
-        <p className="mt-5 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>
-          ASU was built on a different idea: that excellence and access shouldn’t compete. Planting below adds your name to something built for everyone in this room, not a few.
-        </p>
-        <button
-          type="button"
-          onClick={onPlant}
-          disabled={growing}
-          className="mt-7 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95 disabled:opacity-70"
-          style={{ fontFamily: HAAS }}
-        >
-          {growing ? "Planting…" : "Plant my seed"}
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function GrowScreen({
-  name,
-  setName,
-  rooted,
-  onSubmit,
-}: {
-  name: string;
-  setName: (v: string) => void;
-  rooted: boolean;
-  onSubmit: (e: React.FormEvent) => void;
-}) {
+function StoryPage({ onContinue }: { onContinue: () => void }) {
+  const [stage, setStage] = useState(0);
+  useEffect(() => {
+    const timers = [window.setTimeout(() => setStage(1), 1200), window.setTimeout(() => setStage(2), 2500), window.setTimeout(() => setStage(3), 3900)];
+    return () => timers.forEach(window.clearTimeout);
+  }, []);
+  const stories = [
+    { title: "Sow", mark: <CadburyMark />, caption: "Cocoa Life supports the people and places where cocoa begins." },
+    { title: "Plant", mark: <AsuMark />, caption: "ASU helps turn opportunity into a future people can build." },
+    { title: "Grow", mark: <ChangingFuturesMark />, caption: "Changing Futures asks what becomes possible when we invest in people." },
+  ];
+  const current = stories[Math.min(stage, 2)];
   return (
     <section className="relative flex h-full w-full flex-col overflow-hidden bg-plum px-8 pb-10 pt-16">
-      <div className="shrink-0">
-        <ChangingFuturesMark />
-      </div>
-
-      <div className="relative mt-2 flex h-[255px] shrink-0 items-end justify-center overflow-visible">
-        <img
-          src={cocoaTree}
-          alt="Gold line drawing of a full cocoa tree"
-          className="absolute bottom-0 left-1/2 w-72 -translate-x-1/2 origin-bottom object-contain"
-          style={{
-            transform: rooted ? "translateX(-50%) scaleY(1) scaleX(1)" : "translateX(-50%) scaleY(.04) scaleX(.35)",
-            opacity: rooted ? 1 : .12,
-            filter: rooted ? "drop-shadow(0 0 30px rgba(233,194,90,.4))" : "none",
-            transition: `transform 2600ms ${SOFT}, opacity 1600ms ${SOFT}, filter 1600ms ${SOFT}`,
-          }}
-        />
-        <div className="absolute bottom-0 left-0 right-0 h-24">
-          <KraftSoil className="h-full" />
-        </div>
-      </div>
-
-      <form onSubmit={onSubmit} className="relative z-10 mt-2">
-        <h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>
-          Grow
-        </h2>
-        <span className="mt-2 block text-xl italic text-gold/70" style={{ fontFamily: BODONI }}>
-          Changing Futures
-        </span>
-        <p className="mt-3 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>
-          The world ahead doesn’t look like the one behind it. Changing Futures is ASU’s commitment to build what doesn’t exist yet — because it has to. Tonight, you’re part of that.
-        </p>
-
-        <label className="mt-3 block text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60" style={{ fontFamily: HAAS }}>
-          Name
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Name your tree"
-            className="mt-2 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 text-base font-normal normal-case tracking-normal text-foreground outline-none transition-colors focus:border-gold"
-            style={{ fontFamily: GARAMOND }}
-          />
-        </label>
-
-        <button
-          type="submit"
-          className="mt-4 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep transition-transform duration-300 ease-spring hover:scale-[1.03] active:scale-95"
-          style={{ fontFamily: HAAS }}
-        >
-          Root my tree
-        </button>
-      </form>
+      <div className="flex items-center justify-between"><span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-gold-soft/70" style={{ fontFamily: HAAS }}>Rooted</span><span className="text-[11px] uppercase tracking-[0.2em] text-gold-soft/60" style={{ fontFamily: HAAS }}>{Math.min(stage + 1, 3)} / 3</span></div>
+      <div className="mt-8 flex flex-1 flex-col items-center justify-center text-center"><div className="animate-soft-in">{current.mark}</div><h2 className="mt-8 text-7xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>{current.title}</h2><div className="relative mt-8 h-40 w-56"><img src={cocoaSeed} alt="" className="absolute bottom-0 left-1/2 w-24 -translate-x-1/2 object-contain" style={{ opacity: stage === 0 ? 1 : 0, transform: stage === 0 ? "translateX(-50%) scale(1)" : "translateX(-50%) scale(.6)", transition: `opacity 700ms ${SOFT}, transform 900ms ${SOFT}` }} /><img src={cocoaTree} alt="" className="absolute bottom-0 left-1/2 w-52 -translate-x-1/2 object-contain" style={{ opacity: stage === 2 ? 1 : 0, transform: stage === 2 ? "translateX(-50%) scale(1)" : "translateX(-50%) scale(.55)", transition: `opacity 900ms ${SOFT}, transform 1200ms ${SOFT}` }} /></div><p className="mt-4 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>{current.caption}</p></div>
+      <button type="button" onClick={onContinue} className="w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep" style={{ fontFamily: HAAS }}>Continue</button>
     </section>
   );
 }
 
-function ThankYouScreen({ name }: { name: string }) {
+function GiftPage({ tapCount, opened, onTap }: { tapCount: number; opened: boolean; onTap: () => void }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
-      <div className="relative overflow-hidden rounded-[2rem] bg-plum shadow-2xl" style={{ width: 390, height: 844 }}>
-        <div className="relative flex h-full animate-soft-in flex-col items-center justify-center px-10 text-center">
-          <h2 className="text-7xl font-bold leading-[.9] text-gold-soft" style={{ fontFamily: BODONI }}>
-            Thank<span className="block">you</span>
-          </h2>
-          {name ? <p className="mt-8 text-3xl italic text-gold/80" style={{ fontFamily: BODONI }}>{name}</p> : null}
-          <p className="mt-8 max-w-[280px] text-2xl italic leading-relaxed text-gold-soft" style={{ fontFamily: BODONI }}>
-            Your cocoa tree is now rooted.
-          </p>
-          <p className="mt-8 max-w-[320px] text-[15px] italic leading-7 text-foreground/80" style={{ fontFamily: GARAMOND }}>
-            Look toward the front of the room to see everyone’s trees growing together in the grove — something to grow, long after the <span className="whitespace-nowrap">gift is opened.</span>
-          </p>
-        </div>
-      </div>
-    </main>
+    <section className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden bg-kraft px-8 pb-12 pt-16 text-plum-deep">
+      <div className="text-center"><p className="text-[11px] font-bold uppercase tracking-[0.3em]" style={{ fontFamily: HAAS }}>A gift to grow</p><h2 className="mt-3 text-6xl font-bold leading-none" style={{ fontFamily: BODONI }}>Tap, tap, tap.</h2><p className="mt-3 text-[16px] italic" style={{ fontFamily: GARAMOND }}>On the third tap, the gift opens.</p></div>
+      <button type="button" aria-label="Tap the gift box" onClick={onTap} className="relative grid h-64 w-64 place-items-center outline-none" style={{ transform: opened ? "translateY(8px) scale(1.03)" : "scale(1)", transition: `transform 700ms ${SOFT}` }}>
+        <div className="absolute bottom-5 h-40 w-52 rounded-xl border-2 border-gold bg-plum shadow-xl" style={{ transform: opened ? "perspective(500px) rotateX(-15deg)" : "none", transition: `transform 800ms ${SOFT}` }} />
+        <div className="absolute bottom-40 h-12 w-56 rounded-lg border-2 border-gold bg-plum-deep" style={{ transform: opened ? "translateY(-34px) rotate(-3deg)" : "none", transition: `transform 800ms ${SOFT}` }} />
+        <img src={cocoaSeed} alt="Revealed cocoa seed" className="absolute bottom-36 z-10 w-24 object-contain" style={{ opacity: opened ? 1 : 0, transform: opened ? "translateY(-15px) scale(1)" : "translateY(30px) scale(.4)", transition: `opacity 600ms ${SOFT}, transform 800ms ${SOFT}` }} />
+      </button>
+      <div className="text-center"><div className="flex justify-center gap-3">{[1,2,3].map((n) => <span key={n} className="size-3 rounded-full border border-plum-deep/40" style={{ backgroundColor: tapCount >= n ? "var(--gold)" : "transparent" }} />)}</div><p className="mt-4 text-[13px] italic" style={{ fontFamily: GARAMOND }}>{opened ? "A seed, waiting to be planted." : `${3 - tapCount} tap${3 - tapCount === 1 ? "" : "s"} to open`}</p></div>
+    </section>
   );
 }
+
+function PlantPage({ name, setName, saving, onPlant }: { name: string; setName: (v: string) => void; saving: boolean; onPlant: () => void }) {
+  return (
+    <section className="relative flex h-full w-full flex-col overflow-hidden bg-plum px-8 pb-10 pt-16">
+      <div className="flex items-center justify-between"><span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-gold-soft/70" style={{ fontFamily: HAAS }}>Rooted</span><span className="text-[11px] uppercase tracking-[0.2em] text-gold-soft/60" style={{ fontFamily: HAAS }}>Planting / 01</span></div>
+      <div className="relative flex flex-1 items-center justify-center"><div className="absolute bottom-20 left-1/2 h-28 w-56 -translate-x-1/2"><KraftSoil className="h-full" /></div><img src={cocoaSeed} alt="Cocoa seed" className="relative z-10 w-28 object-contain drop-shadow-[0_0_24px_rgba(233,194,90,.35)]" /></div>
+      <div><h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Plant</h2><p className="mt-3 text-[16px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>Your seed has just been planted in the nurseries of Cadbury’s Cocoa Life program in West Africa. From here, its growth follows real time.</p><label className="mt-4 block text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60" style={{ fontFamily: HAAS }}>Name (optional)<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="mt-2 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 text-base normal-case tracking-normal text-foreground outline-none" style={{ fontFamily: GARAMOND }} /></label><button type="button" disabled={saving} onClick={onPlant} className="mt-4 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep disabled:opacity-60" style={{ fontFamily: HAAS }}>{saving ? "Planting…" : "Plant my seed"}</button></div>
+    </section>
+  );
+}
+
+function LivingTree({ tree }: { tree: TreeRecord }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 30000); return () => window.clearInterval(id); }, []);
+  const elapsed = Math.max(0, now - new Date(tree.planted_at).getTime());
+  const ratio = Math.min(1, elapsed / (GROWTH_DURATION_HOURS * 60 * 60 * 1000));
+  const stage = ratio >= 1 ? 4 : ratio >= .72 ? 3 : ratio >= .42 ? 2 : ratio >= .12 ? 1 : 0;
+  const labels = ["Your seed is settling into the soil.", "Your tree is taking root.", "Your tree has its first leaves.", "Your tree is reaching upward.", "Your tree has fully grown."];
+  const next = Math.max(0, GROWTH_DURATION_HOURS * 60 * 60 * 1000 - elapsed);
+  const hours = Math.floor(next / 3600000);
+  const minutes = Math.floor((next % 3600000) / 60000);
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4"><section className="relative h-[844px] w-[390px] overflow-hidden rounded-[2rem] bg-plum px-8 pb-10 pt-16 shadow-2xl"><ChangingFuturesMark /><div className="mt-5"><p className="text-[11px] uppercase tracking-[0.3em] text-gold-soft/60" style={{ fontFamily: HAAS }}>Your living tree</p><h1 className="mt-2 text-5xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>{tree.name ? `${tree.name}'s tree` : "Your tree"}</h1></div><div className="relative mt-4 flex h-[400px] items-end justify-center overflow-visible"><div className="absolute bottom-0 left-0 right-0 h-28"><KraftSoil className="h-full" /></div><img src={stage === 0 ? cocoaSeed : cocoaTree} alt="Cocoa tree growth stage" className="absolute bottom-16 left-1/2 z-10 -translate-x-1/2 object-contain" style={{ width: stage === 0 ? 92 : 290, opacity: stage === 0 ? 1 : .55 + stage * .1125, transform: `translateX(-50%) scale(${stage === 0 ? 1 : .42 + stage * .145})`, transformOrigin: "bottom center", transition: `transform 1800ms ${SOFT}, opacity 1400ms ${SOFT}` }} /></div><p className="text-center text-xl italic text-gold-soft" style={{ fontFamily: GARAMOND }}>{labels[stage]}</p><div className="mt-4 rounded-2xl border border-gold/25 bg-plum-deep/45 p-4 text-center"><p className="text-[10px] font-bold uppercase tracking-[0.24em] text-gold/70" style={{ fontFamily: HAAS }}>Cocoa Life / West Africa</p><p className="mt-2 text-sm italic text-foreground/75" style={{ fontFamily: GARAMOND }}>{stage === 4 ? "Fully grown — this tree will remain rooted here." : `${hours}h ${minutes}m until the next stage`}</p></div></section></main>
+  );
+}
+
+function makeGuestId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+  return Math.random().toString(36).slice(2, 12);
+}
+
+export default RootedExperience;
