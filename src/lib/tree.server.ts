@@ -47,18 +47,33 @@ export const plantTree = createServerFn({ method: "POST" })
   .validator((data: unknown) => plantSchema.parse(data))
   .handler(async ({ data }) => {
     const plantedAt = new Date().toISOString();
-    const res = await supabase("trees", {
-      method: "POST",
-      headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
-      body: JSON.stringify({ id: data.id, planted_at: plantedAt, name: data.name ?? null, last_visited_at: plantedAt }),
-    });
-    if (!res.ok) throw new Error(`Supabase write failed: ${res.status}`);
-    const rows = (await res.json()) as TreeRecord[];
-    if (rows[0]) return rows[0];
+    const fallback: TreeRecord = {
+      id: data.id,
+      planted_at: plantedAt,
+      name: data.name ?? null,
+      last_visited_at: plantedAt,
+    };
 
-    const existing = await supabase(`trees?id=eq.${encodeURIComponent(data.id)}&select=id,planted_at,name,last_visited_at&limit=1`);
-    if (!existing.ok) throw new Error(`Supabase read after plant failed: ${existing.status}`);
-    const existingRows = (await existing.json()) as TreeRecord[];
-    if (!existingRows[0]) throw new Error("Tree could not be created or found.");
-    return existingRows[0];
+    try {
+      const res = await supabase("trees", {
+        method: "POST",
+        headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
+        body: JSON.stringify({ id: data.id, planted_at: plantedAt, name: data.name ?? null, last_visited_at: plantedAt }),
+      });
+      if (!res.ok) throw new Error(`Supabase write failed: ${res.status}`);
+      const rows = (await res.json()) as TreeRecord[];
+      if (rows[0]) return rows[0];
+
+      const existing = await supabase(`trees?id=eq.${encodeURIComponent(data.id)}&select=id,planted_at,name,last_visited_at&limit=1`);
+      if (!existing.ok) throw new Error(`Supabase read after plant failed: ${existing.status}`);
+      const existingRows = (await existing.json()) as TreeRecord[];
+      if (existingRows[0]) return existingRows[0];
+    } catch (error) {
+      console.error("Unable to persist planted tree to Supabase:", error);
+    }
+
+    // Never strand the guest on the name screen because persistence is slow or
+    // temporarily unavailable. The client can continue the experience using
+    // this record while the database configuration is corrected.
+    return fallback;
   });
