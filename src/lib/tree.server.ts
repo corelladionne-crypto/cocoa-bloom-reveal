@@ -12,8 +12,8 @@ const idSchema = z.string().regex(/^[A-Za-z0-9_-]{6,32}$/);
 const plantSchema = z.object({ id: idSchema, name: z.string().trim().max(80).nullable().optional() });
 
 function config() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env['SUPABASE_URL'];
+  const key = process.env['SUPABASE_SERVICE_ROLE_KEY'];
   if (!url || !key) throw new Error("Supabase is not configured. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to Vercel.");
   return { url: url.replace(/\/$/, ""), key };
 }
