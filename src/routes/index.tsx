@@ -101,7 +101,7 @@ function StoryPage({ onContinue }: { onContinue: () => void }) {
     { title: "Plant", mark: <AsuMark />, caption: "ASU helps turn opportunity into a future people can build." },
     { title: "Grow", mark: <ChangingFuturesMark />, caption: "Changing Futures asks what becomes possible when we invest in people." },
   ];
-  const current = stories[Math.min(stage, 2)];
+  const current = stories[Math.min(stage, 2)]!;
   return (
     <section className="relative flex h-full w-full flex-col overflow-hidden bg-plum px-8 pb-10 pt-16">
       <div className="flex items-center justify-between"><span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-gold-soft/70" style={{ fontFamily: HAAS }}>Rooted</span><span className="text-[11px] uppercase tracking-[0.2em] text-gold-soft/60" style={{ fontFamily: HAAS }}>{Math.min(stage + 1, 3)} / 3</span></div>
