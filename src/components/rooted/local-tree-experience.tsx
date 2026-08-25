@@ -1,173 +1,274 @@
 import { useEffect, useMemo, useState } from "react";
 
 import cocoaSeed from "@/assets/cacao-seed.png";
-import cocoaTree from "@/assets/cacao-tree.png";
 import { AsuMark, CadburyMark, ChangingFuturesMark } from "@/components/rooted/logos";
-import { KraftSoil } from "@/components/rooted/torn-edge";
 
-const SOFT = "cubic-bezier(0.22, 1, 0.36, 1)";
-const BODONI = '"Bodoni 72", "Bodoni MT", Didot, Georgia, serif';
-const HAAS = '"Neue Haas Grotesk Display Pro", "Neue Haas Grotesk Text Pro", "Helvetica Neue", Arial, sans-serif';
+const MAROON = "#8C1D40";
+const GOLD = "#FFC627";
+const CREAM = "#F7F0DF";
+const INK = "#241A20";
+const SAND = "#D9C49B";
+const HAAS = '"Neue Haas Grotesk Display Pro", "Helvetica Neue", Arial, sans-serif';
 const GARAMOND = '"EB Garamond", Georgia, serif';
+const BODONI = '"Bodoni 72", "Bodoni MT", Didot, Georgia, serif';
 
-type StoredTree = { id: string; planted_at: string };
+const BASE_COMMUNITY_COUNT = 12846;
 
 type Props = { guestId: string };
 
 function storageKey(id: string) {
-  return `rooted:tree:${id}`;
+  return `rooted:planted:${id}`;
 }
 
-function readTree(id: string): StoredTree | null {
+function hasPlanted(id: string) {
   try {
-    const raw = window.localStorage.getItem(storageKey(id));
-    if (!raw) return null;
-    const value = JSON.parse(raw) as Partial<StoredTree>;
-    if (value.id === id && typeof value.planted_at === "string" && !Number.isNaN(Date.parse(value.planted_at))) {
-      return { id, planted_at: value.planted_at };
-    }
+    return Boolean(window.localStorage.getItem(storageKey(id)));
   } catch {
-    // A blocked/corrupt localStorage entry is treated as a first visit.
+    return false;
   }
-  return null;
 }
 
-function saveTree(id: string) {
-  const tree: StoredTree = { id, planted_at: new Date().toISOString() };
-  window.localStorage.setItem(storageKey(id), JSON.stringify(tree));
-  return tree;
+function savePlanted(id: string) {
+  window.localStorage.setItem(storageKey(id), new Date().toISOString());
 }
 
 export function LocalTreeExperience({ guestId }: Props) {
   const id = useMemo(() => guestId, [guestId]);
-  const [tree, setTree] = useState<StoredTree | null>(null);
-  const [page, setPage] = useState(1);
-  const [tapCount, setTapCount] = useState(0);
-  const [opened, setOpened] = useState(false);
-  const [name, setName] = useState("");
+  const [screen, setScreen] = useState(0);
+  const [planted, setPlanted] = useState(false);
+  const [localCount, setLocalCount] = useState(0);
 
   useEffect(() => {
-    const saved = readTree(id);
-    if (saved) {
-      setTree(saved);
-      setPage(5);
+    if (hasPlanted(id)) {
+      setPlanted(true);
+      setScreen(4);
     }
   }, [id]);
 
-  const tapGift = () => {
-    if (opened) return;
-    const next = Math.min(3, tapCount + 1);
-    setTapCount(next);
-    if (next === 3) {
-      setOpened(true);
-      window.setTimeout(() => setPage(4), 900);
-    }
-  };
-
   const plant = () => {
-    if (tree) return;
-    const saved = saveTree(id);
-    setTree(saved);
-    setPage(5);
+    if (!planted) {
+      try {
+        savePlanted(id);
+      } catch {
+        // The experience can continue even if browser storage is unavailable.
+      }
+      setPlanted(true);
+      setLocalCount(1);
+    }
+    setScreen(1);
   };
-
-  if (page === 5 && tree) return <LocalLivingTree tree={tree} />;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4">
-      <div className="relative h-[844px] w-[390px] overflow-hidden rounded-[2rem] shadow-2xl">
-        {page === 1 ? <RelationshipPage onContinue={() => setPage(2)} /> : null}
-        {page === 2 ? <StoryPage onContinue={() => setPage(3)} /> : null}
-        {page === 3 ? <GiftPage tapCount={tapCount} opened={opened} onTap={tapGift} /> : null}
-        {page === 4 ? <PlantPage name={name} setName={setName} onPlant={plant} /> : null}
+    <main style={{ background: INK, fontFamily: GARAMOND }} className="min-h-screen">
+      <div className="mx-auto min-h-screen w-full max-w-[520px] overflow-hidden shadow-2xl">
+        {screen === 0 && <Invitation onPlant={plant} />}
+        {screen === 1 && <SeedReveal onDone={() => setScreen(2)} />}
+        {screen === 2 && <CollectiveCount localCount={localCount} onStories={() => setScreen(3)} />}
+        {screen === 3 && <Stories onLandscape={() => setScreen(4)} />}
+        {screen === 4 && <Landscape onExplore={() => setScreen(5)} />}
+        {screen === 5 && <Takeaway />}
       </div>
     </main>
   );
 }
 
-function RelationshipPage({ onContinue }: { onContinue: () => void }) {
+function Shell({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
   return (
-    <section className="relative flex h-full w-full flex-col overflow-hidden bg-kraft px-7 pb-8 pt-10 text-plum-deep">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(255,255,255,.28),transparent_62%)]" />
-      <div className="relative z-10 flex h-full flex-col">
-        <div className="flex items-center justify-between"><AsuMark /><CadburyMark /></div>
-        <div className="mt-7">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ fontFamily: HAAS }}>Rooted / Changing Futures</p>
-          <h1 className="mt-3 text-6xl font-bold leading-[.9]" style={{ fontFamily: BODONI }}>A seed can<br />change a future.</h1>
-          <p className="mt-5 text-[16px] italic leading-relaxed" style={{ fontFamily: GARAMOND }}>Cadbury’s Cocoa Life program works with cocoa-growing communities in West Africa to support farmers, strengthen livelihoods, and protect the landscapes cocoa depends on.</p>
-          <p className="mt-3 text-[16px] italic leading-relaxed" style={{ fontFamily: GARAMOND }}>Arizona State University’s Changing Futures brings that same belief in possibility into education: opportunity can change the direction of a life.</p>
-        </div>
-        <div className="mt-auto"><p className="mb-3 text-center text-[13px] italic text-plum-deep/70" style={{ fontFamily: GARAMOND }}>Three stories. One growing future.</p><button type="button" onClick={onContinue} className="w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep" style={{ fontFamily: HAAS }}>Continue</button></div>
-      </div>
+    <section
+      className="relative flex min-h-screen flex-col overflow-hidden px-7 py-8 sm:px-10"
+      style={{ background: dark ? MAROON : CREAM, color: dark ? CREAM : INK }}
+    >
+      <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: "radial-gradient(circle at 20% 15%, rgba(255,198,39,.18), transparent 28%), radial-gradient(circle at 90% 80%, rgba(140,29,64,.10), transparent 32%)" }} />
+      <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
     </section>
   );
 }
 
-function StoryPage({ onContinue }: { onContinue: () => void }) {
-  const [stage, setStage] = useState(0);
+function Header() {
+  return (
+    <header className="flex items-center justify-between" style={{ fontFamily: HAAS }}>
+      <AsuMark />
+      <span className="text-[9px] font-bold uppercase tracking-[0.24em]" style={{ color: MAROON }}>Changing Futures</span>
+    </header>
+  );
+}
+
+function Button({ children, onClick, dark = false }: { children: React.ReactNode; onClick: () => void; dark?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex w-full items-center justify-between rounded-full px-5 py-4 text-left text-[12px] font-bold uppercase tracking-[0.17em] transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0"
+      style={{ background: dark ? GOLD : MAROON, color: dark ? MAROON : CREAM, fontFamily: HAAS }}
+    >
+      <span>{children}</span><span className="text-xl transition-transform group-hover:translate-x-1">→</span>
+    </button>
+  );
+}
+
+function Invitation({ onPlant }: { onPlant: () => void }) {
+  return (
+    <Shell>
+      <Header />
+      <div className="mt-16 flex flex-1 flex-col">
+        <p className="text-[10px] font-bold uppercase tracking-[0.34em]" style={{ fontFamily: HAAS, color: MAROON }}>A Changing Futures invitation</p>
+        <h1 className="mt-5 text-[clamp(3.8rem,17vw,6.6rem)] font-bold leading-[0.82] tracking-[-0.05em]" style={{ fontFamily: BODONI, color: MAROON }}>
+          CHANGE<br />STARTS<br />WITH A<br /><span style={{ color: INK }}>SEED.</span>
+        </h1>
+        <div className="mt-8 max-w-[25rem] border-l-2 pl-5" style={{ borderColor: GOLD }}>
+          <p className="text-[21px] italic leading-[1.2]">A single seed can become something greater when it is given the opportunity to take root.</p>
+        </div>
+        <div className="mt-auto pt-14">
+          <div className="mb-8 flex items-end justify-between">
+            <div><p className="text-[10px] font-bold uppercase tracking-[0.28em]" style={{ fontFamily: HAAS }}>Seed / Root / Connect / Flourish</p><p className="mt-2 text-sm opacity-65">Your invitation starts here.</p></div>
+            <div className="h-16 w-16 rounded-full border" style={{ borderColor: `${MAROON}55` }}><img src={cocoaSeed} alt="Seed" className="h-full w-full object-contain p-2" /></div>
+          </div>
+          <Button onClick={onPlant}>Tap to plant your seed</Button>
+        </div>
+      </div>
+    </Shell>
+  );
+}
+
+function SeedReveal({ onDone }: { onDone: () => void }) {
+  const [step, setStep] = useState(0);
   useEffect(() => {
-    const timers = [window.setTimeout(() => setStage(1), 1200), window.setTimeout(() => setStage(2), 2500)];
+    const timers = [
+      window.setTimeout(() => setStep(1), 900),
+      window.setTimeout(() => setStep(2), 2400),
+      window.setTimeout(() => setStep(3), 3900),
+      window.setTimeout(() => setStep(4), 5600),
+    ];
     return () => timers.forEach(window.clearTimeout);
   }, []);
-  const stories = [
-    { title: "Sow", mark: <CadburyMark />, caption: "Cocoa Life supports the people and places where cocoa begins." },
-    { title: "Plant", mark: <AsuMark />, caption: "ASU helps turn opportunity into a future people can build." },
-    { title: "Grow", mark: <ChangingFuturesMark />, caption: "Changing Futures asks what becomes possible when we invest in people." },
-  ];
-  const current = stories[Math.min(stage, 2)];
+
   return (
-    <section className="relative flex h-full w-full flex-col overflow-hidden bg-plum px-8 pb-10 pt-16">
-      <div className="flex items-center justify-between"><span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-gold-soft/70" style={{ fontFamily: HAAS }}>Rooted</span><span className="text-[11px] uppercase tracking-[0.2em] text-gold-soft/60" style={{ fontFamily: HAAS }}>{Math.min(stage + 1, 3)} / 3</span></div>
-      <div className="mt-8 flex flex-1 flex-col items-center justify-center text-center"><div className="animate-soft-in">{current.mark}</div><h2 className="mt-8 text-7xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>{current.title}</h2><div className="relative mt-8 h-40 w-56"><img src={cocoaSeed} alt="" className="absolute bottom-0 left-1/2 w-24 -translate-x-1/2 object-contain" style={{ opacity: stage === 0 ? 1 : 0, transform: stage === 0 ? "translateX(-50%) scale(1)" : "translateX(-50%) scale(.6)", transition: `opacity 700ms ${SOFT}, transform 900ms ${SOFT}` }} /><img src={cocoaTree} alt="" className="absolute bottom-0 left-1/2 w-52 -translate-x-1/2 object-contain" style={{ opacity: stage === 2 ? 1 : 0, transform: stage === 2 ? "translateX(-50%) scale(1)" : "translateX(-50%) scale(.55)", transition: `opacity 900ms ${SOFT}, transform 1200ms ${SOFT}` }} /></div><p className="mt-4 max-w-[19rem] text-[15px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>{current.caption}</p></div>
-      <button type="button" onClick={onContinue} className="w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep" style={{ fontFamily: HAAS }}>Continue</button>
-    </section>
+    <Shell dark>
+      <Header />
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ fontFamily: HAAS, color: GOLD }}>01 / Seed</p>
+        <div className="relative mt-10 h-[360px] w-full overflow-hidden rounded-[2rem]" style={{ background: "linear-gradient(180deg, #8C1D40 0%, #7A2943 52%, #A88957 52%, #CBB887 100%)" }}>
+          <div className="absolute bottom-[48%] left-1/2 h-px w-52 -translate-x-1/2" style={{ background: `${GOLD}88` }} />
+          <div className="absolute bottom-[8%] left-1/2 h-24 w-56 -translate-x-1/2 rounded-[50%] opacity-30" style={{ background: "#5B3C2A" }} />
+          <img
+            src={cocoaSeed}
+            alt="Palo Verde seed"
+            className="absolute left-1/2 z-20 w-20 object-contain"
+            style={{
+              bottom: step === 0 ? "58%" : "45%",
+              transform: `translateX(-50%) scale(${step === 0 ? 1.1 : 0.72})`,
+              opacity: step >= 1 ? 1 : 0,
+              transition: "all 1100ms cubic-bezier(.22,1,.36,1)",
+            }}
+          />
+          <div className="absolute bottom-[22%] left-1/2 h-28 w-32 -translate-x-1/2" style={{ opacity: step >= 2 ? 1 : 0, transition: "opacity 900ms ease" }}>
+            <div className="absolute left-1/2 top-0 h-28 w-px -translate-x-1/2 rotate-[12deg]" style={{ background: CREAM }} />
+            <div className="absolute left-1/2 top-10 h-16 w-px -translate-x-1/2 -rotate-[48deg] origin-top" style={{ background: CREAM }} />
+            <div className="absolute left-1/2 top-14 h-14 w-px -translate-x-1/2 rotate-[52deg] origin-top" style={{ background: CREAM }} />
+          </div>
+          <div className="absolute bottom-[34%] left-1/2 h-20 w-px -translate-x-1/2" style={{ background: GOLD, opacity: step >= 3 ? 1 : 0, transform: `translateX(-50%) scaleY(${step >= 4 ? 1 : .4})`, transformOrigin: "bottom", transition: "all 900ms ease" }} />
+          <div className="absolute left-1/2 top-[19%] flex -translate-x-1/2 gap-1" style={{ opacity: step >= 4 ? 1 : 0, transform: `translateX(-50%) scale(${step >= 4 ? 1 : .4})`, transition: "all 1000ms cubic-bezier(.22,1,.36,1)" }}>
+            {[0,1,2,3,4].map((n) => <span key={n} className="h-4 w-4 rounded-full" style={{ background: n % 2 ? GOLD : CREAM }} />)}
+          </div>
+        </div>
+        <h2 className="mt-9 text-5xl font-bold leading-[.9]" style={{ fontFamily: BODONI, color: GOLD }}>{step < 2 ? "YOUR SEED." : step < 4 ? "ROOTS BEGIN\nTO FORM." : "A POSSIBILITY\nTAKES ROOT."}</h2>
+        <p className="mt-4 max-w-[21rem] text-lg italic opacity-80">{step < 4 ? "Watch closely." : "Your seed joins thousands of others."}</p>
+        {step >= 4 && <div className="mt-8 w-full"><Button dark onClick={onDone}>Continue</Button></div>}
+      </div>
+    </Shell>
   );
 }
 
-function GiftPage({ tapCount, opened, onTap }: { tapCount: number; opened: boolean; onTap: () => void }) {
+function CollectiveCount({ localCount, onStories }: { localCount: number; onStories: () => void }) {
+  const count = BASE_COMMUNITY_COUNT + localCount;
   return (
-    <section className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden bg-kraft px-8 pb-12 pt-16 text-plum-deep">
-      <div className="text-center"><p className="text-[11px] font-bold uppercase tracking-[0.3em]" style={{ fontFamily: HAAS }}>A gift to grow</p><h2 className="mt-3 text-6xl font-bold leading-none" style={{ fontFamily: BODONI }}>Tap, tap, tap.</h2><p className="mt-3 text-[16px] italic" style={{ fontFamily: GARAMOND }}>On the third tap, the gift opens.</p></div>
-      <button type="button" aria-label="Tap the gift box" onClick={onTap} className="relative grid h-64 w-64 place-items-center outline-none" style={{ transform: opened ? "translateY(8px) scale(1.03)" : "scale(1)", transition: `transform 700ms ${SOFT}` }}>
-        <div className="absolute bottom-5 h-40 w-52 rounded-xl border-2 border-gold bg-plum shadow-xl" style={{ transform: opened ? "perspective(500px) rotateX(-15deg)" : "none", transition: `transform 800ms ${SOFT}` }} />
-        <div className="absolute bottom-40 h-12 w-56 rounded-lg border-2 border-gold bg-plum-deep" style={{ transform: opened ? "translateY(-34px) rotate(-3deg)" : "none", transition: `transform 800ms ${SOFT}` }} />
-        <img src={cocoaSeed} alt="Revealed cocoa seed" className="absolute bottom-36 z-10 w-24 object-contain" style={{ opacity: opened ? 1 : 0, transform: opened ? "translateY(-15px) scale(1)" : "translateY(30px) scale(.4)", transition: `opacity 600ms ${SOFT}, transform 800ms ${SOFT}` }} />
-      </button>
-      <div className="text-center"><div className="flex justify-center gap-3">{[1,2,3].map((n) => <span key={n} className="size-3 rounded-full border border-plum-deep/40" style={{ backgroundColor: tapCount >= n ? "var(--gold)" : "transparent" }} />)}</div><p className="mt-4 text-[13px] italic" style={{ fontFamily: GARAMOND }}>{opened ? "A seed, waiting to be planted." : `${3 - tapCount} tap${3 - tapCount === 1 ? "" : "s"} to open`}</p></div>
-    </section>
+    <Shell>
+      <Header />
+      <div className="flex flex-1 flex-col justify-center">
+        <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ fontFamily: HAAS, color: MAROON }}>02 / Collective impact</p>
+        <p className="mt-10 text-[clamp(5rem,25vw,9rem)] font-bold leading-none tracking-[-0.06em]" style={{ fontFamily: BODONI, color: MAROON }}>{count.toLocaleString()}</p>
+        <h2 className="mt-3 text-3xl font-bold uppercase tracking-[-0.02em]" style={{ fontFamily: HAAS }}>seeds planted</h2>
+        <div className="mt-7 flex items-center gap-3"><span className="h-3 w-3 rounded-full" style={{ background: GOLD }} /><span className="text-xl italic">You just added one.</span></div>
+        <p className="mt-10 max-w-[27rem] text-[20px] leading-[1.2]">Every seed represents a person, an idea, an opportunity, or a connection with the potential to create change.</p>
+        <div className="mt-auto pt-12"><p className="mb-5 text-sm opacity-65">Changing Futures is ASU’s campaign to shape a future that doesn’t yet exist—but must. It advances learning that unlocks opportunity, supports economic mobility and helps communities thrive. citeturn0view0</p><Button onClick={onStories}>See what your seed is part of</Button></div>
+      </div>
+    </Shell>
   );
 }
 
-function PlantPage({ name, setName, onPlant }: { name: string; setName: (v: string) => void; onPlant: () => void }) {
+const stories = [
+  { label: "EDUCATION", title: "Accelerate", body: "Real college courses come into high schools, helping students earn credit, build confidence and believe they belong in higher education." },
+  { label: "LIFELONG LEARNING", title: "ASU for Life", body: "Personalized learning pathways help people build skills, networks and confidence as they grow and pivot throughout their careers." },
+  { label: "INNOVATION", title: "CareerCatalyst", body: "Fast, flexible learning helps people upskill and reskill for the future of work, with hundreds of courses and credentials." },
+  { label: "COMMUNITY", title: "Health Literacy", body: "Accessible, community-informed learning helps people navigate care, understand prevention and make informed decisions for themselves and their families." },
+];
+
+function Stories({ onLandscape }: { onLandscape: () => void }) {
+  const [active, setActive] = useState(0);
+  const story = stories[active];
   return (
-    <section className="relative flex h-full w-full flex-col overflow-hidden bg-plum px-8 pb-10 pt-16">
-      <div className="flex items-center justify-between"><span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-gold-soft/70" style={{ fontFamily: HAAS }}>Rooted</span><span className="text-[11px] uppercase tracking-[0.2em] text-gold-soft/60" style={{ fontFamily: HAAS }}>Planting / 01</span></div>
-      <div className="relative flex flex-1 items-center justify-center"><div className="absolute bottom-20 left-1/2 h-28 w-56 -translate-x-1/2"><KraftSoil className="h-full" /></div><img src={cocoaSeed} alt="Cocoa seed" className="relative z-10 w-28 object-contain drop-shadow-[0_0_24px_rgba(233,194,90,.35)]" /></div>
-      <div><h2 className="text-6xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Plant</h2><p className="mt-3 text-[16px] italic leading-relaxed text-foreground/80" style={{ fontFamily: GARAMOND }}>Your seed has just been planted, in real soil, through Cadbury’s Cocoa Life program.</p><label className="mt-4 block text-[11px] font-bold uppercase tracking-[0.3em] text-foreground/60" style={{ fontFamily: HAAS }}>Name (optional)<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="mt-2 w-full rounded-xl border border-gold/40 bg-plum-deep/60 px-4 py-3 text-base normal-case tracking-normal text-foreground outline-none" style={{ fontFamily: GARAMOND }} /></label><button type="button" onClick={onPlant} className="mt-4 w-full rounded-full bg-gold px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-plum-deep" style={{ fontFamily: HAAS }}>Plant my seed</button></div>
-    </section>
+    <Shell dark>
+      <Header />
+      <div className="flex flex-1 flex-col">
+        <p className="mt-14 text-[10px] font-bold uppercase tracking-[0.32em]" style={{ fontFamily: HAAS, color: GOLD }}>03 / Stories</p>
+        <h2 className="mt-5 text-6xl font-bold leading-[.88]" style={{ fontFamily: BODONI }}>ONE SEED.<br />MANY STORIES.</h2>
+        <p className="mt-5 max-w-[27rem] text-lg italic opacity-80">The seed isn't really about a tree. It is about people, ideas and opportunities that can change what comes next.</p>
+        <div className="mt-8 flex gap-2 overflow-x-auto pb-2">
+          {stories.map((item, index) => <button key={item.title} type="button" onClick={() => setActive(index)} className="shrink-0 rounded-full border px-4 py-2 text-[10px] font-bold tracking-[0.18em]" style={{ fontFamily: HAAS, borderColor: index === active ? GOLD : `${CREAM}55`, background: index === active ? GOLD : "transparent", color: index === active ? MAROON : CREAM }}>{item.label}</button>)}
+        </div>
+        <article className="mt-7 flex flex-1 flex-col rounded-[2rem] p-6" style={{ background: CREAM, color: INK }}>
+          <div className="flex items-start justify-between"><span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ fontFamily: HAAS, color: MAROON }}>{story.label}</span><span className="text-[11px] opacity-50" style={{ fontFamily: HAAS }}>0{active + 1} / 04</span></div>
+          <h3 className="mt-auto text-6xl font-bold leading-[.85]" style={{ fontFamily: BODONI, color: MAROON }}>{story.title}</h3>
+          <p className="mt-5 text-[21px] leading-[1.15]">{story.body}</p>
+          <p className="mt-5 text-sm italic opacity-65">One example of how learning can unlock opportunity and help communities thrive. citeturn0view0</p>
+        </article>
+        <div className="pt-5"><Button dark onClick={onLandscape}>See the landscape</Button></div>
+      </div>
+    </Shell>
   );
 }
 
-function getStage(plantedAt: string, now: number) {
-  const hoursElapsed = Math.max(0, now - new Date(plantedAt).getTime()) / (1000 * 60 * 60);
-  if (hoursElapsed < 6) return { key: "just planted", copy: "Your tree has just been planted, in real soil, through Cadbury’s Cocoa Life program.", progress: 0 };
-  if (hoursElapsed < 18) return { key: "taking root", copy: "Your tree is taking root.", progress: 1 };
-  if (hoursElapsed < 36) return { key: "first leaves", copy: "Your tree has its first leaves.", progress: 2 };
-  return { key: "fully grown", copy: "Your tree has fully grown.", progress: 3 };
+function Blossom({ style }: { style?: React.CSSProperties }) {
+  return <span className="absolute block h-3 w-3 rounded-full" style={{ background: GOLD, boxShadow: `0 0 0 2px ${CREAM}33`, ...style }} />;
 }
 
-function LocalLivingTree({ tree }: { tree: StoredTree }) {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
-  const stage = getStage(tree.planted_at, now);
-  const plantedMs = new Date(tree.planted_at).getTime();
-  const elapsedHours = Math.max(0, now - plantedMs) / 3600000;
-  const nextThreshold = stage.progress === 0 ? 6 : stage.progress === 1 ? 18 : stage.progress === 2 ? 36 : null;
-  const remaining = nextThreshold === null ? 0 : Math.max(0, (nextThreshold - elapsedHours) * 3600000);
-  const hours = Math.floor(remaining / 3600000);
-  const minutes = Math.floor((remaining % 3600000) / 60000);
-  const seconds = Math.floor((remaining % 60000) / 1000);
+function Landscape({ onExplore }: { onExplore: () => void }) {
+  const blossoms = Array.from({ length: 38 }, (_, i) => ({ left: `${(i * 37) % 98}%`, bottom: `${10 + ((i * 19) % 48)}%`, delay: `${(i % 8) * 120}ms`, scale: 0.55 + ((i * 13) % 7) / 10 }));
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[oklch(0.16_0.03_305.5)] p-4"><section className="relative h-[844px] w-[390px] overflow-hidden rounded-[2rem] bg-plum px-8 pb-10 pt-16 shadow-2xl"><ChangingFuturesMark /><div className="mt-5"><p className="text-[11px] uppercase tracking-[0.3em] text-gold-soft/60" style={{ fontFamily: HAAS }}>Your living tree</p><h1 className="mt-2 text-5xl font-bold leading-none text-gold-soft" style={{ fontFamily: BODONI }}>Your tree</h1></div><div className="relative mt-4 flex h-[400px] items-end justify-center"><img src={cocoaTree} alt="Your growing cocoa tree" className="w-72 object-contain transition-all duration-1000" style={{ transform: `scale(${[0.28,0.5,0.75,1][stage.progress]})`, transformOrigin: "bottom center", opacity: [0.55,0.7,0.88,1][stage.progress] }} /></div><div className="rounded-2xl border border-gold/20 bg-plum-deep/40 p-5"><p className="text-[11px] font-bold uppercase tracking-[0.24em] text-gold-soft/60" style={{ fontFamily: HAAS }}>{stage.key}</p><p className="mt-2 text-[20px] italic leading-relaxed text-foreground" style={{ fontFamily: GARAMOND }}>{stage.copy}</p>{nextThreshold !== null ? <p className="mt-3 text-[12px] uppercase tracking-[0.16em] text-gold-soft/60" style={{ fontFamily: HAAS }}>Next stage in {hours}h {minutes}m {seconds}s</p> : <p className="mt-3 text-[12px] uppercase tracking-[0.16em] text-gold-soft/60" style={{ fontFamily: HAAS }}>Fully grown — this tree stays here.</p>}</div></section></main>
+    <Shell dark>
+      <Header />
+      <div className="flex flex-1 flex-col justify-center">
+        <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ fontFamily: HAAS, color: GOLD }}>04 / The landscape</p>
+        <h2 className="mt-5 text-6xl font-bold leading-[.86]" style={{ fontFamily: BODONI }}>TOGETHER,<br />WE'RE<br /><span style={{ color: GOLD }}>CHANGING</span><br />THE LANDSCAPE.</h2>
+        <div className="relative mt-8 h-64 overflow-hidden rounded-[2rem]" style={{ background: "linear-gradient(180deg, #8C1D40 0%, #9C4C54 48%, #B59B70 48%, #6F8A55 100%)" }}>
+          <div className="absolute bottom-0 left-0 h-20 w-full" style={{ background: "#55704D", clipPath: "polygon(0 70%, 20% 38%, 43% 64%, 62% 30%, 81% 58%, 100% 36%, 100% 100%, 0 100%)" }} />
+          {blossoms.map((b, i) => <Blossom key={i} style={{ left: b.left, bottom: b.bottom, transform: `scale(${b.scale})`, animation: `rootedBloom 2.4s ease ${b.delay} infinite alternate` }} />)}
+          <span className="absolute bottom-3 left-4 text-[9px] font-bold uppercase tracking-[0.2em] text-white/70" style={{ fontFamily: HAAS }}>One seed → one blossom → a growing community</span>
+        </div>
+        <p className="mt-7 text-[22px] italic leading-[1.15]">Your contribution is small on its own. Together, individual contributions can create a landscape of opportunity.</p>
+        <div className="mt-auto pt-8"><Button dark onClick={onExplore}>Make it part of your future</Button></div>
+      </div>
+      <style>{`@keyframes rootedBloom { from { opacity:.45; transform:scale(.72); } to { opacity:1; transform:scale(1.12); } }`}</style>
+    </Shell>
+  );
+}
+
+function Takeaway() {
+  return (
+    <Shell>
+      <div className="flex flex-1 flex-col">
+        <div className="flex items-center justify-between"><AsuMark /><ChangingFuturesMark /></div>
+        <div className="mt-20">
+          <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ fontFamily: HAAS, color: MAROON }}>05 / Your takeaway</p>
+          <h1 className="mt-6 text-[clamp(4rem,18vw,7rem)] font-bold leading-[.8] tracking-[-0.05em]" style={{ fontFamily: BODONI, color: MAROON }}>YOUR SEED<br /><span style={{ color: INK }}>IS PLANTED.</span></h1>
+          <h2 className="mt-8 text-4xl font-bold uppercase" style={{ fontFamily: HAAS }}>Now help it grow.</h2>
+          <p className="mt-6 text-[21px] leading-[1.18]">Stay connected to Changing Futures and discover the people, ideas and opportunities shaping what’s next.</p>
+        </div>
+        <div className="mt-auto space-y-4 pt-12">
+          <a href="https://learning.asu.edu/our-impact/changing-futures/" target="_blank" rel="noreferrer" className="flex w-full items-center justify-between rounded-full px-5 py-4 text-[12px] font-bold uppercase tracking-[0.17em]" style={{ background: MAROON, color: CREAM, fontFamily: HAAS }}>Explore Changing Futures <span className="text-xl">↗</span></a>
+          <div className="flex items-center justify-between border-t pt-5" style={{ borderColor: `${MAROON}33` }}><CadburyMark /><span className="text-[9px] uppercase tracking-[0.2em] opacity-60" style={{ fontFamily: HAAS }}>Rooted / Watch Change Take Root</span></div>
+        </div>
+      </div>
+    </Shell>
   );
 }
