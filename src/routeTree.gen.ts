@@ -17,7 +17,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const TreeIdRoute = TreeIdRouteImport.update({
   id: '/tree/$id',
   path: '/tree/$id',
